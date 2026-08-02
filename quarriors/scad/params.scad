@@ -2,22 +2,30 @@ die_measured = 13.5;
 die_worst_case = 14.0;
 die_fit_clearance = 1.0;
 die_corner_radius = 2.0;
+die_color = "AntiqueWhite";
 
 pocket = die_worst_case + die_fit_clearance;
 
 wall = 1.6;
 floor_thickness = 1.2;
-tray_wall_height = 7.0;
+
+tray_wall_ratio = 0.5;
+skirt_mode = "rim";
+skirt_engagement = 1.5;
 
 stack_clearance = 0.5;
 skirt_clearance = 0.5;
 lane_gap = 0.3;
 
-skirt_height = die_worst_case + stack_clearance - tray_wall_height;
-tray_height = tray_wall_height + floor_thickness + skirt_height;
+tray_wall_height = die_worst_case * tray_wall_ratio;
+die_protrusion = die_worst_case - tray_wall_height;
+
+skirt_height = skirt_mode == "rim" ? die_protrusion + stack_clearance : skirt_engagement;
+tray_height = skirt_height + floor_thickness + tray_wall_height;
+tray_pitch = skirt_mode == "rim" ? tray_height : floor_thickness + die_worst_case;
+
 tray_width = pocket + 2 * wall + skirt_clearance;
 lane_pitch = tray_width + lane_gap;
-die_protrusion = die_worst_case - tray_wall_height;
 
 card_width = 70.0;
 card_height = 97.0;
@@ -34,7 +42,7 @@ envelope = tin_inner - tin_safety_margin;
 function tray_length(dice_count) = dice_count * pocket + 2 * wall + skirt_clearance;
 
 function lanes_in(width) = floor(width / lane_pitch);
-function levels_in(height) = floor((height - die_protrusion) / tray_height);
+function levels_in(height) = floor((height - die_protrusion) / tray_pitch);
 function slots_in(region, dice_count) =
     tray_length(dice_count) <= region[0] ? lanes_in(region[1]) * levels_in(region[2]) : 0;
 

@@ -49,7 +49,7 @@ module fill_region(origin, region, dice_count) {
     if (tray_length(dice_count) <= region[0] && lanes > 0 && levels > 0)
         translate(origin)
             for (lane = [0 : lanes - 1], level = [0 : levels - 1])
-                translate([0, lane * lane_pitch, level * tray_height])
+                translate([0, lane * lane_pitch, level * tray_pitch])
                     dice_tray(dice_count);
 }
 

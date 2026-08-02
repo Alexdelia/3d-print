@@ -6,14 +6,14 @@ module die() {
            rounding = die_corner_radius, $fn = 32, anchor = BOTTOM);
 }
 
-module tray_with_dice(dice_count, filled) {
-    dice_tray(dice_count);
+module tray_with_dice(dice_count, filled, tray_color) {
+    color(tray_color) dice_tray(dice_count);
 
     for (i = [0 : filled - 1])
         translate([wall + skirt_clearance / 2 + pocket * (i + 0.5),
                    tray_width / 2,
                    skirt_height + floor_thickness])
-            die();
+            color(die_color) die();
 }
 
 module dice_tray(dice_count) {
