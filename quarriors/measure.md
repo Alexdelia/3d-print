@@ -4,7 +4,9 @@
   - with rounded edge: 11cm
 
 # dice
-1.4cm ~ 1.5cm
+-  1: 1.4cm ~ 1.5cm
+-  5: 6.8cm ~ 7.0cm
+- 10: 13.3cm ~ 13.5cm
 
 ## base game
 16 x  5 dice
