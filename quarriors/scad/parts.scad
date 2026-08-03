@@ -79,19 +79,29 @@ module tray_with_dice(dice_count, filled, tray_color) {
             die();
 }
 
-module dice_tray(dice_count) {
-    length = tray_length(dice_count);
+module tray_label(label, length, width) {
+    translate([length / 2, width / 2, skirt_height + floor_thickness - label_depth])
+        linear_extrude(label_depth + 0.01)
+            text(label, size = label_size, halign = "center", valign = "center");
+}
+
+module dice_tray(dice_count, basis = die_basis, label = "") {
+    length = tray_length(dice_count, basis);
+    width = tray_width_for(basis);
     skirt_inset = wall;
     pocket_inset = wall + skirt_clearance / 2;
 
     difference() {
-        cube([length, tray_width, tray_height]);
+        cube([length, width, tray_height]);
 
         translate([skirt_inset, skirt_inset, -0.01])
-            cube([length - 2 * skirt_inset, tray_width - 2 * skirt_inset, skirt_height + 0.01]);
+            cube([length - 2 * skirt_inset, width - 2 * skirt_inset, skirt_height + 0.01]);
 
         translate([pocket_inset, pocket_inset, skirt_height + floor_thickness])
-            cube([channel_length(dice_count), pocket_width, tray_wall_height + 0.01]);
+            cube([channel_length(dice_count, basis), pocket_width_for(basis),
+                  tray_wall_height + 0.01]);
+
+        if (label != "") tray_label(label, length, width);
     }
 }
 
