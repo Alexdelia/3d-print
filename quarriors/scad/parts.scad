@@ -1,9 +1,72 @@
 include <BOSL2/std.scad>
 include <params.scad>
 
-module die() {
+module die_body() {
     cuboid([die_measured, die_measured, die_measured],
-           rounding = die_corner_radius, $fn = 32, anchor = BOTTOM);
+           rounding = die_corner_radius, $fn = die_smoothness, anchor = BOTTOM);
+}
+
+module drop_outline(size) {
+    hull() {
+        translate([0, -size * 0.17]) circle(d = size * 0.58, $fn = 64);
+        translate([0, size * 0.5]) circle(d = 0.01, $fn = 8);
+    }
+}
+
+module die_icon_face(value) {
+    color(die_icon_color)
+        linear_extrude(die_icon_relief) drop_outline(die_icon_size);
+
+    color(die_icon_text_color)
+        translate([0, -die_icon_size * 0.17, die_icon_relief])
+            linear_extrude(0.12)
+                text(str(value), size = die_icon_size * 0.30,
+                     halign = "center", valign = "center");
+}
+
+die_face_rotations = [
+    [0, 0, 0],
+    [180, 0, 0],
+    [90, 0, 0],
+    [-90, 0, 0],
+    [0, 90, 0],
+    [0, -90, 0],
+];
+
+die_face_spins = [0, 0, 0, 180, 90, -90];
+
+function die_face_values(value) =
+    is_num(value) ? [for (i = [0 : 5]) value] : value;
+
+module on_die_face(index) {
+    half = die_measured / 2;
+
+    translate([0, 0, half])
+        rotate(die_face_rotations[index])
+            rotate([0, 0, die_face_spins[index]])
+                translate([0, 0, half - die_icon_relief])
+                    children();
+}
+
+module die(value = die_faces) {
+    values = die_face_values(value);
+
+    if (die_icon) {
+        color(die_color)
+            difference() {
+                die_body();
+
+                for (i = [0 : 5])
+                    on_die_face(i)
+                        linear_extrude(die_icon_relief + 0.01)
+                            drop_outline(die_icon_size);
+            }
+
+        for (i = [0 : 5])
+            on_die_face(i) die_icon_face(values[i]);
+    } else {
+        color(die_color) die_body();
+    }
 }
 
 module tray_with_dice(dice_count, filled, tray_color) {
@@ -13,7 +76,7 @@ module tray_with_dice(dice_count, filled, tray_color) {
         translate([wall + skirt_clearance / 2 + pocket * (i + 0.5),
                    tray_width / 2,
                    skirt_height + floor_thickness])
-            color(die_color) die();
+            die();
 }
 
 module dice_tray(dice_count) {

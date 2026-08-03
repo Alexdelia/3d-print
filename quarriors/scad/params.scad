@@ -2,7 +2,15 @@ die_measured = 13.5;
 die_worst_case = 14.0;
 die_fit_clearance = 1.0;
 die_corner_radius = 2.0;
-die_color = "AntiqueWhite";
+die_smoothness = 96;
+die_color = "WhiteSmoke";
+
+die_icon = true;
+die_faces = [1, 1, 1, 1, 1, 2];
+die_icon_size = 7.6;
+die_icon_relief = 0.3;
+die_icon_color = "SteelBlue";
+die_icon_text_color = "Gainsboro";
 
 pocket = die_worst_case + die_fit_clearance;
 
