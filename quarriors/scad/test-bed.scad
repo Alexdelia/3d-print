@@ -6,7 +6,7 @@ part = -1;
 plate_gap = 6;
 
 tray_copies = 1;
-base_card_stacks = [for (n = base_card_counts) stack_of(n)];
+card_stacks = [for (n = all_card_counts) stack_of(n)];
 
 module test_part(index) {
     if (index == 0)
@@ -14,7 +14,7 @@ module test_part(index) {
     else if (index == 1)
         dice_tray(6);
     else
-        card_block(base_card_stacks);
+        card_block(card_stacks);
 }
 
 module plate() {
@@ -28,7 +28,7 @@ module plate() {
 
 if (part < 0) plate(); else test_part(part);
 
-plate_x = tray_length(6) + 2 * plate_gap + card_block_depth(base_card_stacks);
+plate_x = tray_length(6) + 2 * plate_gap + card_block_depth(card_stacks);
 plate_y = max((tray_copies + 1) * (tray_width + plate_gap) - plate_gap, card_block_width());
 
 echo(str("skirt mode            ", skirt_mode, ", skirt ", skirt_height,
@@ -48,13 +48,13 @@ echo(str("part 0  5-die tray x", tray_copies, "  ", tray_length(5), " x ", tray_
          " x ", tray_height, "  channel ", channel_length(5), "  pocket ", pocket_width));
 echo(str("part 1  6-die tray    ", tray_length(6), " x ", tray_width,
          " x ", tray_height, "  channel ", channel_length(6), "  pocket ", pocket_width));
-echo(str("part 2  base cards    ", card_block_depth(base_card_stacks),
+echo(str("part 2  card block    ", card_block_depth(card_stacks),
          " x ", card_block_width(), " x ", card_block_height(),
          "  notch ", card_notch_width, " x ", card_notch_depth));
 
-for (i = [0 : len(base_card_counts) - 1])
-    echo(str("        compartment ", i, "  ", base_card_counts[i], " cards, stack ",
-             base_card_stacks[i], ", slot ", base_card_stacks[i] + card_slot_clearance));
+for (i = [0 : len(all_card_counts) - 1])
+    echo(str("        compartment ", i, "  ", all_card_counts[i], " cards, stack ",
+             card_stacks[i], ", slot ", card_stacks[i] + card_slot_clearance));
 
 echo(str("loaded stack of ", tray_copies + 1, "     rim ",
          tray_copies * tray_pitch + tray_height, ", dice top ",

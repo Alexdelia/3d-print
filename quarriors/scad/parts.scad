@@ -208,19 +208,4 @@ module card_block(stacks, label = "", notch = true) {
         }
 }
 
-function card_well_length() = card_height + card_face_clearance + 2 * card_wall;
-function card_well_width() = card_width + card_face_clearance + 2 * card_wall;
-
-module card_well(card_count) {
-    height = well_height_for(card_count);
-
-    translate([card_well_length() / 2, card_well_width() / 2, 0])
-        difference() {
-            outer_body(card_well_length(), card_well_width(), height);
-
-            up(floor_thickness)
-                slot_void(card_height + card_face_clearance, card_width + card_face_clearance,
-                          height - floor_thickness, card_slot_rounding,
-                          card_floor_chamfer, card_lead_in);
-        }
-}
+function card_reach() = floor_thickness + card_height;

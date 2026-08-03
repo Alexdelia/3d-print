@@ -22,6 +22,8 @@ nozzle = 0.4;
 layer_height = 0.2;
 max_bridge = 50.0;
 
+function beads(count) = count * nozzle - 1e-6;
+
 wall = 1.6;
 floor_thickness = 1.2;
 
@@ -75,11 +77,11 @@ assert(tray_wall_height > die_corner_radius,
        "tray wall shorter than the die corner radius: it only holds the rounded corner");
 assert(skirt_cavity_rounding >= 0,
        "outer_rounding smaller than wall: the skirt corner would have no material");
-assert(rim_flat >= nozzle,
+assert(rim_flat >= beads(1),
        "pocket_lead_in + outer_top_chamfer leave less than one bead of flat rim");
-assert(first_layer_wall >= 2 * nozzle,
+assert(first_layer_wall >= beads(2),
        "skirt_lead_in leaves a first layer thinner than two beads");
-assert(label_depth <= wall + skirt_clearance / 2 - 2 * nozzle,
+assert(label_depth <= wall + skirt_clearance / 2 - beads(2),
        "label engraving leaves less than two beads of wall behind it");
 assert(pocket_floor_flat > die_contact_patch,
        "pocket_floor_chamfer eats into the flat face the die lands on");
@@ -91,24 +93,27 @@ lane_pitch = tray_width + lane_gap;
 
 card_width = 70.0;
 card_height = 97.0;
-card_thickness = 0.62;
-card_slot_clearance = 2.0;
+card_thickness = 0.45;
+card_thickness_worst = 0.48;
+card_basis = card_thickness_worst;
+card_slot_clearance = 1.5;
 card_face_clearance = 2.5;
 card_block_wall_height = 70.0;
 
 card_wall = 2.4;
-card_divider = 1.6;
+card_divider = 1.2;
 card_slot_rounding = 3.0;
 
 base_card_counts = [3, 20, 30];
 expansion_card_counts = [45];
+all_card_counts = [3, 20, 30, 45];
 card_notch_width = 36.0;
 card_notch_depth = 28.0;
 card_notch_rounding = 8.0;
 card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
-assert(card_divider >= 3 * nozzle,
+assert(card_divider >= beads(3),
        "card divider thinner than three beads: it would print as a gap-filled sliver");
 assert(card_notch_depth < card_block_wall_height,
        "lift notch cut deeper than the wall is tall");
@@ -129,5 +134,4 @@ function levels_in(height) = floor((height - die_protrusion) / tray_pitch);
 function slots_in(region, dice_count) =
     tray_length(dice_count) <= region[0] ? lanes_in(region[1]) * levels_in(region[2]) : 0;
 
-function stack_of(count) = count * card_thickness;
-function well_height_for(count) = floor_thickness + stack_of(count) + card_slot_clearance;
+function stack_of(count) = count * card_basis;
