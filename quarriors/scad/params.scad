@@ -18,8 +18,8 @@ wall = 1.6;
 floor_thickness = 1.2;
 
 tray_wall_ratio = 0.5;
-skirt_mode = "rim";
-skirt_engagement = 1.5;
+skirt_mode = "dice";
+skirt_ratio = 0.3;
 
 stack_clearance = 0.5;
 skirt_clearance = 0.5;
@@ -28,9 +28,19 @@ lane_gap = 0.3;
 tray_wall_height = die_worst_case * tray_wall_ratio;
 die_protrusion = die_worst_case - tray_wall_height;
 
-skirt_height = skirt_mode == "rim" ? die_protrusion + stack_clearance : skirt_engagement;
+skirt_height = skirt_mode == "rim" ? die_protrusion + stack_clearance
+                                  : die_worst_case * skirt_ratio;
 tray_height = skirt_height + floor_thickness + tray_wall_height;
 tray_pitch = skirt_mode == "rim" ? tray_height : floor_thickness + die_worst_case;
+
+skirt_flat_engagement = skirt_height - die_corner_radius;
+rim_gap = die_protrusion - skirt_height;
+die_side_play = (pocket + skirt_clearance - die_measured) / 2;
+
+assert(skirt_mode != "dice" || skirt_height < die_protrusion,
+       "skirt_ratio too large for skirt_mode=dice: the skirt reaches the rim below");
+assert(skirt_mode != "dice" || skirt_flat_engagement > 0,
+       "skirt shallower than the die corner radius: it only grips the rounded corner");
 
 tray_width = pocket + 2 * wall + skirt_clearance;
 lane_pitch = tray_width + lane_gap;
