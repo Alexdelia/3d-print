@@ -69,76 +69,195 @@ module die(value = die_faces) {
     }
 }
 
-module tray_with_dice(dice_count, filled, tray_color) {
-    color(tray_color) dice_tray(dice_count);
+module engrave_front(txt, size, x, z, y_face, angle = 0) {
+    translate([x, y_face + label_depth, z])
+        rotate([90, 0, 0])
+            linear_extrude(label_depth + 0.02)
+                rotate([0, 0, angle])
+                    text(txt, size = size, halign = "center", valign = "center");
+}
+
+module engrave_back(txt, size, x, z, y_face, angle = 0) {
+    translate([x, y_face - label_depth, z])
+        rotate([0, 0, 180])
+            rotate([90, 0, 0])
+                linear_extrude(label_depth + 0.02)
+                    rotate([0, 0, angle])
+                        text(txt, size = size, halign = "center", valign = "center");
+}
+
+module slot_void(length, width, depth, rounding, floor_chamfer, lead_in) {
+    straight = depth - floor_chamfer - lead_in;
+
+    assert(straight > 0, "slot too shallow for its floor chamfer plus lead-in");
+
+    prismoid(size1 = [length + 2 * floor_chamfer, width + 2 * floor_chamfer],
+             size2 = [length, width], h = floor_chamfer,
+             rounding = rounding, anchor = BOTTOM);
+
+    up(floor_chamfer)
+        cuboid([length, width, straight], rounding = rounding, edges = "Z", anchor = BOTTOM);
+
+    up(floor_chamfer + straight)
+        prismoid(size1 = [length, width],
+                 size2 = [length + 2 * lead_in, width + 2 * lead_in], h = lead_in,
+                 rounding = rounding, anchor = BOTTOM);
+
+    up(depth)
+        cuboid([length + 2 * lead_in, width + 2 * lead_in, 1],
+               rounding = rounding, edges = "Z", anchor = BOTTOM);
+}
+
+module skirt_void(length, width) {
+    straight = skirt_height - skirt_lead_in;
+
+    down(1)
+        cuboid([length + 2 * skirt_lead_in, width + 2 * skirt_lead_in, 1.001],
+               rounding = skirt_cavity_rounding, edges = "Z", anchor = BOTTOM);
+
+    prismoid(size1 = [length + 2 * skirt_lead_in, width + 2 * skirt_lead_in],
+             size2 = [length, width], h = skirt_lead_in,
+             rounding = skirt_cavity_rounding, anchor = BOTTOM);
+
+    up(skirt_lead_in)
+        cuboid([length, width, straight],
+               rounding = skirt_cavity_rounding, edges = "Z", anchor = BOTTOM);
+}
+
+module outer_body(length, width, height) {
+    if (outer_top_chamfer > 0)
+        offset_sweep(rect([length, width], rounding = outer_rounding), height = height,
+                     top = os_chamfer(width = outer_top_chamfer));
+    else
+        linear_extrude(height) rect([length, width], rounding = outer_rounding);
+}
+
+module dice_tray(dice_count, basis = die_basis, pocket = 0, label = "") {
+    pocket_w = pocket > 0 ? pocket : pocket_width_for(basis);
+    channel = channel_length(dice_count, basis);
+    length = tray_length(dice_count, basis);
+    width = tray_width_of(pocket_w);
+    floor_top = skirt_height + floor_thickness;
+
+    translate([length / 2, width / 2, 0])
+        difference() {
+            outer_body(length, width, tray_height);
+
+            skirt_void(length - 2 * wall, width - 2 * wall);
+
+            up(floor_top)
+                slot_void(channel, pocket_w, tray_wall_height, pocket_rounding,
+                          pocket_floor_chamfer, pocket_lead_in);
+
+            if (label != "")
+                engrave_front(label, label_size, 0, floor_top + tray_wall_height / 2,
+                              -width / 2);
+        }
+}
+
+module tray_with_dice(dice_count, filled, tray_color, basis = die_basis) {
+    width = tray_width_for(basis);
+    first = wall + skirt_clearance / 2 + row_clearance / 2;
+
+    color(tray_color) dice_tray(dice_count, basis);
 
     for (i = [0 : filled - 1])
-        translate([wall + skirt_clearance / 2 + row_clearance / 2 + die_measured * (i + 0.5),
-                   tray_width / 2,
+        translate([first + die_measured * (i + 0.5), width / 2,
                    skirt_height + floor_thickness])
             die();
 }
 
-module tray_label(label, length, width) {
-    translate([length / 2, width / 2, skirt_height + floor_thickness - label_depth])
-        linear_extrude(label_depth + 0.01)
-            text(label, size = label_size, halign = "center", valign = "center");
-}
+function gauge_pocket_offset(index) =
+    gauge_wall + (index == 0 ? 0
+                             : sum([for (j = [0 : index - 1]) gauge_pockets[j] + gauge_wall]));
 
-module dice_tray(dice_count, basis = die_basis, label = "") {
-    length = tray_length(dice_count, basis);
-    width = tray_width_for(basis);
-    skirt_inset = wall;
-    pocket_inset = wall + skirt_clearance / 2;
+module gauge_coupon(label = "") {
+    length = gauge_target_length;
 
-    difference() {
-        cube([length, width, tray_height]);
+    translate([length / 2, gauge_width / 2, 0])
+        difference() {
+            outer_body(length, gauge_width, gauge_height);
 
-        translate([skirt_inset, skirt_inset, -0.01])
-            cube([length - 2 * skirt_inset, width - 2 * skirt_inset, skirt_height + 0.01]);
+            for (i = [0 : len(gauge_pockets) - 1]) {
+                size = gauge_pockets[i];
+                x = gauge_pocket_offset(i) + size / 2 - length / 2;
 
-        translate([pocket_inset, pocket_inset, skirt_height + floor_thickness])
-            cube([channel_length(dice_count, basis), pocket_width_for(basis),
-                  tray_wall_height + 0.01]);
+                translate([x, 0, floor_thickness])
+                    slot_void(size, size, gauge_depth, pocket_rounding,
+                              pocket_floor_chamfer, pocket_lead_in);
 
-        if (label != "") tray_label(label, length, width);
-    }
+                engrave_front(str(size), label_size * 0.8, x, gauge_height / 2,
+                              -gauge_width / 2);
+            }
+
+            if (label != "")
+                engrave_back(label, label_size * 0.8, 0, gauge_height / 2,
+                             gauge_width / 2);
+        }
 }
 
 function card_slot_depths(stacks) = [for (s = stacks) s + card_slot_clearance];
 
 function card_slot_offset(depths, index) =
-    wall + (index == 0 ? 0 : sum([for (j = [0 : index - 1]) depths[j] + wall]));
+    card_wall + (index == 0 ? 0 : sum([for (j = [0 : index - 1]) depths[j] + card_wall]));
 
 function card_block_depth(stacks) =
-    wall + sum([for (d = card_slot_depths(stacks)) d + wall]);
+    card_wall + sum([for (d = card_slot_depths(stacks)) d + card_wall]);
 
-function card_block_width() = card_width + card_face_clearance + 2 * wall;
+function card_block_width() = card_width + card_face_clearance + 2 * card_wall;
+function card_block_height() = floor_thickness + card_block_wall_height;
 
-module card_block(stacks) {
-    depths = card_slot_depths(stacks);
-    inner_width = card_width + card_face_clearance;
-    height = floor_thickness + card_block_wall_height;
+module card_lift_notch(span, height) {
+    r = card_notch_rounding;
+    half = card_notch_width / 2 - r;
+    bottom = height - card_notch_depth;
 
-    difference() {
-        cube([card_block_depth(stacks), card_block_width(), height]);
+    hull()
+        for (s = [-1, 1])
+            translate([0, s * half, bottom + r]) xcyl(r = r, l = span);
 
-        for (i = [0 : len(stacks) - 1])
-            translate([card_slot_offset(depths, i), wall, floor_thickness])
-                cube([depths[i], inner_width, height]);
-    }
+    translate([0, 0, bottom + r])
+        cuboid([span, card_notch_width, card_notch_depth - r + 1], anchor = BOTTOM);
 }
 
-function card_well_length() = card_height + card_face_clearance + 2 * wall;
-function card_well_width() = card_width + card_face_clearance + 2 * wall;
+module card_block(stacks, label = "", notch = true) {
+    depths = card_slot_depths(stacks);
+    length = card_block_depth(stacks);
+    width = card_block_width();
+    height = card_block_height();
+    inner_width = card_width + card_face_clearance;
+
+    translate([length / 2, width / 2, 0])
+        difference() {
+            outer_body(length, width, height);
+
+            for (i = [0 : len(stacks) - 1])
+                translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0,
+                           floor_thickness])
+                    slot_void(depths[i], inner_width, card_block_wall_height,
+                              min(card_slot_rounding, depths[i] / 2 - 0.01),
+                              card_floor_chamfer, card_lead_in);
+
+            if (notch) card_lift_notch(length + 2, height);
+
+            if (label != "")
+                engrave_front(label, label_size, 0, height * 0.25, -width / 2, angle = 90);
+        }
+}
+
+function card_well_length() = card_height + card_face_clearance + 2 * card_wall;
+function card_well_width() = card_width + card_face_clearance + 2 * card_wall;
 
 module card_well(card_count) {
     height = well_height_for(card_count);
 
-    difference() {
-        cube([card_well_length(), card_well_width(), height]);
+    translate([card_well_length() / 2, card_well_width() / 2, 0])
+        difference() {
+            outer_body(card_well_length(), card_well_width(), height);
 
-        translate([wall, wall, floor_thickness])
-            cube([card_height + card_face_clearance, card_width + card_face_clearance, height]);
-    }
+            up(floor_thickness)
+                slot_void(card_height + card_face_clearance, card_width + card_face_clearance,
+                          height - floor_thickness, card_slot_rounding,
+                          card_floor_chamfer, card_lead_in);
+        }
 }
