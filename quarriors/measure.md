@@ -23,19 +23,20 @@
 # card
 - h: 9.5cm ~ 9.7cm
 - w: 6.8cm ~ 7.0cm
+- sleeved: 0.45mm/card (0.43 ~ 0.48)
 
-## base game
+## base game (stacks loose, superseded)
 - basic: 3x 0.3cm
 - spell: 20x 1cm ~ 1.2cm
 - creature: 30x 1.5cm ~ 1.7cm
 
-## rise of the demons
+## rise of the demons (stacks loose, superseded)
 - basic: 1x
 - spell: 4x
 - creature: 14x
 -> 19x 1cm ~ 1.2cm
 
-## quarmageddon
+## quarmageddon (stacks loose, superseded)
 - spell: 8x
 - creature: 18x
 -> 26x 1.3cm ~ 1.5cm ?
