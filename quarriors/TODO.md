@@ -1,0 +1,3 @@
+- fancy card https://cf.geekdo-images.com/uGmKOZx0lkrJ7huQmXP6Ow__imagepage@2x/img/-mltS1Gf_goZZeRWMOaq6V4ti9s=/fit-in/1800x1200/filters:strip_icc()/pic1063821.jpg
+- hollow tray bottom
+- honeycomb card holder (only in width, not full width)
