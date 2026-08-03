@@ -97,13 +97,19 @@ card_face_clearance = 2.5;
 card_block_wall_height = 70.0;
 
 card_wall = 2.4;
+card_divider = 1.6;
 card_slot_rounding = 3.0;
+
+base_card_counts = [3, 20, 30];
+expansion_card_counts = [45];
 card_notch_width = 36.0;
 card_notch_depth = 28.0;
 card_notch_rounding = 8.0;
 card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
+assert(card_divider >= 3 * nozzle,
+       "card divider thinner than three beads: it would print as a gap-filled sliver");
 assert(card_notch_depth < card_block_wall_height,
        "lift notch cut deeper than the wall is tall");
 assert(card_notch_rounding <= card_notch_width / 2,

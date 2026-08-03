@@ -162,10 +162,10 @@ module tray_with_dice(dice_count, filled, tray_color, basis = die_basis) {
 function card_slot_depths(stacks) = [for (s = stacks) s + card_slot_clearance];
 
 function card_slot_offset(depths, index) =
-    card_wall + (index == 0 ? 0 : sum([for (j = [0 : index - 1]) depths[j] + card_wall]));
+    card_wall + (index == 0 ? 0 : sum([for (j = [0 : index - 1]) depths[j] + card_divider]));
 
 function card_block_depth(stacks) =
-    card_wall + sum([for (d = card_slot_depths(stacks)) d + card_wall]);
+    2 * card_wall + sum(card_slot_depths(stacks)) + (len(stacks) - 1) * card_divider;
 
 function card_block_width() = card_width + card_face_clearance + 2 * card_wall;
 function card_block_height() = floor_thickness + card_block_wall_height;
