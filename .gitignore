@@ -1,2 +1,5 @@
 # direnv
 /.direnv/
+
+# scad render
+*.png
