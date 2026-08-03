@@ -77,15 +77,6 @@ module engrave_front(txt, size, x, z, y_face, angle = 0) {
                     text(txt, size = size, halign = "center", valign = "center");
 }
 
-module engrave_back(txt, size, x, z, y_face, angle = 0) {
-    translate([x, y_face - label_depth, z])
-        rotate([0, 0, 180])
-            rotate([90, 0, 0])
-                linear_extrude(label_depth + 0.02)
-                    rotate([0, 0, angle])
-                        text(txt, size = size, halign = "center", valign = "center");
-}
-
 module slot_void(length, width, depth, rounding, floor_chamfer, lead_in) {
     straight = depth - floor_chamfer - lead_in;
 
@@ -93,7 +84,7 @@ module slot_void(length, width, depth, rounding, floor_chamfer, lead_in) {
 
     prismoid(size1 = [length + 2 * floor_chamfer, width + 2 * floor_chamfer],
              size2 = [length, width], h = floor_chamfer,
-             rounding = rounding, anchor = BOTTOM);
+             rounding1 = rounding + floor_chamfer, rounding2 = rounding, anchor = BOTTOM);
 
     up(floor_chamfer)
         cuboid([length, width, straight], rounding = rounding, edges = "Z", anchor = BOTTOM);
@@ -101,23 +92,24 @@ module slot_void(length, width, depth, rounding, floor_chamfer, lead_in) {
     up(floor_chamfer + straight)
         prismoid(size1 = [length, width],
                  size2 = [length + 2 * lead_in, width + 2 * lead_in], h = lead_in,
-                 rounding = rounding, anchor = BOTTOM);
+                 rounding1 = rounding, rounding2 = rounding + lead_in, anchor = BOTTOM);
 
     up(depth)
         cuboid([length + 2 * lead_in, width + 2 * lead_in, 1],
-               rounding = rounding, edges = "Z", anchor = BOTTOM);
+               rounding = rounding + lead_in, edges = "Z", anchor = BOTTOM);
 }
 
 module skirt_void(length, width) {
     straight = skirt_height - skirt_lead_in;
+    mouth_rounding = skirt_cavity_rounding + skirt_lead_in;
 
     down(1)
         cuboid([length + 2 * skirt_lead_in, width + 2 * skirt_lead_in, 1.001],
-               rounding = skirt_cavity_rounding, edges = "Z", anchor = BOTTOM);
+               rounding = mouth_rounding, edges = "Z", anchor = BOTTOM);
 
     prismoid(size1 = [length + 2 * skirt_lead_in, width + 2 * skirt_lead_in],
              size2 = [length, width], h = skirt_lead_in,
-             rounding = skirt_cavity_rounding, anchor = BOTTOM);
+             rounding1 = mouth_rounding, rounding2 = skirt_cavity_rounding, anchor = BOTTOM);
 
     up(skirt_lead_in)
         cuboid([length, width, straight],
@@ -165,35 +157,6 @@ module tray_with_dice(dice_count, filled, tray_color, basis = die_basis) {
         translate([first + die_measured * (i + 0.5), width / 2,
                    skirt_height + floor_thickness])
             die();
-}
-
-function gauge_pocket_offset(index) =
-    gauge_wall + (index == 0 ? 0
-                             : sum([for (j = [0 : index - 1]) gauge_pockets[j] + gauge_wall]));
-
-module gauge_coupon(label = "") {
-    length = gauge_target_length;
-
-    translate([length / 2, gauge_width / 2, 0])
-        difference() {
-            outer_body(length, gauge_width, gauge_height);
-
-            for (i = [0 : len(gauge_pockets) - 1]) {
-                size = gauge_pockets[i];
-                x = gauge_pocket_offset(i) + size / 2 - length / 2;
-
-                translate([x, 0, floor_thickness])
-                    slot_void(size, size, gauge_depth, pocket_rounding,
-                              pocket_floor_chamfer, pocket_lead_in);
-
-                engrave_front(str(size), label_size * 0.8, x, gauge_height / 2,
-                              -gauge_width / 2);
-            }
-
-            if (label != "")
-                engrave_back(label, label_size * 0.8, 0, gauge_height / 2,
-                             gauge_width / 2);
-        }
 }
 
 function card_slot_depths(stacks) = [for (s = stacks) s + card_slot_clearance];

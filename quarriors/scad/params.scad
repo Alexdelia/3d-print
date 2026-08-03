@@ -125,14 +125,3 @@ function slots_in(region, dice_count) =
 
 function stack_of(count) = count * card_thickness;
 function well_height_for(count) = floor_thickness + stack_of(count) + card_slot_clearance;
-
-gauge_pockets = [14.0, 14.5, 15.0, 15.5, 16.0];
-gauge_target_length = 100.0;
-gauge_depth = tray_wall_height;
-
-gauge_wall = (gauge_target_length - sum(gauge_pockets)) / (len(gauge_pockets) + 1);
-gauge_width = max(gauge_pockets) + 2 * gauge_wall;
-gauge_height = floor_thickness + gauge_depth;
-
-assert(gauge_wall >= 2 * wall,
-       "gauge dividers thinner than two tray walls: the coupon would not represent a tray");
