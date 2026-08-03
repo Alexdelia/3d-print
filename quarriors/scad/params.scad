@@ -12,7 +12,8 @@ die_icon_relief = 0.3;
 die_icon_color = "SteelBlue";
 die_icon_text_color = "Gainsboro";
 
-pocket = die_worst_case + die_fit_clearance;
+pocket_width = die_worst_case + die_fit_clearance;
+row_clearance = 1.5;
 
 wall = 1.6;
 floor_thickness = 1.2;
@@ -35,14 +36,14 @@ tray_pitch = skirt_mode == "rim" ? tray_height : floor_thickness + die_worst_cas
 
 skirt_flat_engagement = skirt_height - die_corner_radius;
 rim_gap = die_protrusion - skirt_height;
-die_side_play = (pocket + skirt_clearance - die_measured) / 2;
+die_side_play = (pocket_width + skirt_clearance - die_measured) / 2;
 
 assert(skirt_mode != "dice" || skirt_height < die_protrusion,
        "skirt_ratio too large for skirt_mode=dice: the skirt reaches the rim below");
 assert(skirt_mode != "dice" || skirt_flat_engagement > 0,
        "skirt shallower than the die corner radius: it only grips the rounded corner");
 
-tray_width = pocket + 2 * wall + skirt_clearance;
+tray_width = pocket_width + 2 * wall + skirt_clearance;
 lane_pitch = tray_width + lane_gap;
 
 card_width = 70.0;
@@ -57,7 +58,8 @@ tin_corner_radius = 7.5;
 tin_safety_margin = 5.0;
 envelope = tin_inner - tin_safety_margin;
 
-function tray_length(dice_count) = dice_count * pocket + 2 * wall + skirt_clearance;
+function channel_length(dice_count) = dice_count * die_worst_case + row_clearance;
+function tray_length(dice_count) = channel_length(dice_count) + 2 * wall + skirt_clearance;
 
 function lanes_in(width) = floor(width / lane_pitch);
 function levels_in(height) = floor((height - die_protrusion) / tray_pitch);

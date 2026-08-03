@@ -73,7 +73,7 @@ module tray_with_dice(dice_count, filled, tray_color) {
     color(tray_color) dice_tray(dice_count);
 
     for (i = [0 : filled - 1])
-        translate([wall + skirt_clearance / 2 + pocket * (i + 0.5),
+        translate([wall + skirt_clearance / 2 + row_clearance / 2 + die_measured * (i + 0.5),
                    tray_width / 2,
                    skirt_height + floor_thickness])
             die();
@@ -91,7 +91,7 @@ module dice_tray(dice_count) {
             cube([length - 2 * skirt_inset, tray_width - 2 * skirt_inset, skirt_height + 0.01]);
 
         translate([pocket_inset, pocket_inset, skirt_height + floor_thickness])
-            cube([dice_count * pocket, pocket, tray_wall_height + 0.01]);
+            cube([channel_length(dice_count), pocket_width, tray_wall_height + 0.01]);
     }
 }
 
