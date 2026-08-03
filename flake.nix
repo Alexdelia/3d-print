@@ -38,6 +38,8 @@
             openscad-lsp
             prusa-slicer
             f3d
+
+            python3
           ];
 
           OPENSCADPATH = "${openscadLibraries}";
