@@ -6,18 +6,15 @@ part = -1;
 plate_gap = 6;
 
 tray_copies = 1;
-card_stacks = [
-    for (n = all_card_counts)
-        stack_of(n)
-];
+card_stacks = all_card_stacks;
 
 module test_part(index) {
     if (index == 0)
-        dice_tray(5);
+        dice_tray(5, filled = 0);
     else if (index == 1)
-        dice_tray(6);
+        dice_tray(6, filled = 0);
     else
-        card_block(card_stacks);
+        card_block(card_stacks, loaded = false);
 }
 
 module plate() {
@@ -55,8 +52,8 @@ echo(str("part 0  5-die tray x", tray_copies, "  ", tray_length(5), " x ", tray_
 echo(str("part 1  6-die tray    ", tray_length(6), " x ", tray_width, " x ", tray_height, "  channel ", channel_length(6), "  pocket ", pocket_width));
 echo(str("part 2  card block    ", card_block_depth(card_stacks), " x ", card_block_width(), " x ", card_block_height(), "  notch ", card_notch_width, " x ", card_notch_depth));
 
-for(i = [0:len(all_card_counts) - 1])
-    echo(str("        compartment ", i, "  ", all_card_counts[i], " cards, stack ", card_stacks[i], ", slot ", card_stacks[i] + card_slot_clearance));
+for(i = [0:len(card_stacks) - 1])
+    echo(str("        compartment ", i, "  ", stack_count(card_stacks[i]), " cards (", stack_summary(card_stacks[i]), "), stack ", stack_depth(card_stacks[i]), ", slot ", stack_depth(card_stacks[i]) + card_slot_clearance));
 
 echo(str("loaded stack of ", tray_copies + 1, "     rim ", tray_copies * tray_pitch + tray_height, ", dice top ", tray_copies * tray_pitch + skirt_height + floor_thickness + die_measured));
 echo(str("plate                 ", plate_x, " x ", plate_y));

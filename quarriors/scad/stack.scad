@@ -14,7 +14,7 @@ stack_levels = [
 module stack_scene() {
     for(i = [0:len(stack_levels) - 1])
         translate([0, 0, i * (tray_pitch + explode)])
-            tray_with_dice(5, stack_levels[i][1], stack_levels[i][0]);
+            dice_tray(5, filled = stack_levels[i][1], part_color = stack_levels[i][0]);
 }
 
 if (section)

@@ -1,3 +1,6 @@
+show_dice = true;
+show_cards = true;
+
 die_measured = 13.5;
 die_worst_case = 14.0;
 die_fit_clearance = 1.0;
@@ -94,13 +97,61 @@ card_slot_clearance = 1.5;
 card_face_clearance = 2.5;
 card_block_wall_height = 70.0;
 
+tray_color = "Coral";
+block_color = "MediumSeaGreen";
+
+card_corner_radius = 3.0;
+card_art_relief = 0.05;
+card_logo_color = "Firebrick";
+card_logo_ratio = 0.66;
+card_band_ratio = 0.11;
+card_label_ratio = 0.52;
+card_label_font = "Liberation Sans:style=Bold";
+
+card_kind_styles = [
+    [
+        "BASIC",
+        ["Tan", "DarkRed", "Cornsilk"]
+    ],
+    [
+        "SPELL",
+        ["Gainsboro", "DarkGray", "White"]
+    ],
+    [
+        "CREATURE",
+        ["#2e2e2e", "#101010", "White"]
+    ],
+];
+
+function card_style(kind) =
+    card_kind_styles[search([kind], card_kind_styles)[0]][1];
+
 card_wall = 2.4;
 card_divider = 1.2;
 card_slot_rounding = 3.0;
 
-base_card_counts = [3, 20, 30];
-expansion_card_counts = [45];
-all_card_counts = [3, 20, 30, 45];
+base_card_stacks = [
+    [
+        ["BASIC", 3]
+    ],
+    [
+        ["SPELL", 20]
+    ],
+    [
+        ["CREATURE", 30]
+    ],
+];
+expansion_card_stacks = [
+    [
+        ["BASIC", 1],
+        ["SPELL", 4],
+        ["CREATURE", 14],
+        ["SPELL", 8],
+        ["CREATURE", 18],
+    ],
+];
+all_card_stacks = concat(base_card_stacks, expansion_card_stacks);
+
 card_notch_width = 36.0;
 card_notch_depth = 28.0;
 card_notch_rounding = 8.0;
@@ -130,3 +181,34 @@ function slots_in(region, dice_count) =
 
 function stack_of(count) =
     count * card_basis;
+
+function deck_kind(deck) =
+    deck[0];
+function deck_count(deck) =
+    deck[1];
+function deck_depth(deck) =
+    stack_of(deck_count(deck));
+
+function stack_count(stack) =
+    sum([
+        for (d = stack)
+            deck_count(d)
+    ]);
+function stack_depth(stack) =
+    stack_of(stack_count(stack));
+function stack_summary(stack) =
+    str_join([
+        for (d = stack)
+            str(deck_count(d), " ", deck_kind(d))
+    ], " + ");
+function deck_offset(stack, index) =
+    index == 0 ? 0 : stack_of(sum([
+        for (j = [0:index - 1])
+            deck_count(stack[j])
+    ]));
+
+assert(len([
+    for (s = all_card_stacks, d = s)
+        if (is_undef(card_style(deck_kind(d))))
+            d
+]) == 0, "a card deck names a kind that has no entry in card_kind_styles");

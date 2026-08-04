@@ -57,22 +57,17 @@ long_trays_needed = sum([
         g[1] > 5 ? g[0] : 0
 ]);
 
-all_stacks = [
-    for (n = all_card_counts)
-        stack_of(n)
-];
-
 arm_a_stacks = [
     for (i = [0:l_arm - 1])
-        all_stacks[i]
+        all_card_stacks[i]
 ];
 arm_b_stacks = [
-    for (i = [l_arm:len(all_stacks) - 1])
-        all_stacks[i]
+    for (i = [l_arm:len(all_card_stacks) - 1])
+        all_card_stacks[i]
 ];
 
 cards_width = card_block_width();
-merged_depth = card_block_depth(all_stacks);
+merged_depth = card_block_depth(all_card_stacks);
 arm_a_depth = card_block_depth(arm_a_stacks);
 arm_b_depth = card_block_depth(arm_b_stacks);
 
@@ -132,20 +127,17 @@ fits = l_valid && long_trays_fit && usable_slots >= trays_needed;
 
 module cards() {
     if (card_layout == "L") {
-        color("MediumSeaGreen")
-            translate([cards_width, 0, 0])
-                rotate([0, 0, 90])
-                    card_block(arm_a_stacks);
+        translate([cards_width, 0, 0])
+            rotate([0, 0, 90])
+                card_block(arm_a_stacks);
 
-        color("Goldenrod")
-            translate([0, arm_a_depth, 0])
-                card_block(arm_b_stacks);
+        translate([0, arm_a_depth, 0])
+            card_block(arm_b_stacks, part_color = "Goldenrod");
     } else
-        color("MediumSeaGreen")
-            card_block(all_stacks);
+        card_block(all_card_stacks);
 }
 
-module fill_region(origin, region, dice_count, turn = false) {
+module fill_region(origin, region, dice_count, turn = false, part_color = tray_color) {
     lanes = lanes_in(region[1]);
     levels = levels_in(region[2]);
 
@@ -154,7 +146,7 @@ module fill_region(origin, region, dice_count, turn = false) {
             rotate([0, 0, turn ? 90 : 0])
                 for(lane = [0:lanes - 1], level = [0:levels - 1])
                     translate([0, lane * lane_pitch, level * tray_pitch])
-                        dice_tray(dice_count);
+                        dice_tray(dice_count, part_color = part_color);
 }
 
 module tin() {
@@ -167,17 +159,13 @@ tin();
 cards();
 
 if (card_layout == "L") {
-    color("Coral")
-        fill_region([cards_width, arm_a_depth, 0], l_regions[0], region_trays[0], turn = true);
+    fill_region([cards_width, arm_a_depth, 0], l_regions[0], region_trays[0], turn = true);
 
-    color("SteelBlue")
-        fill_region([envelope, 0, 0], l_regions[1], region_trays[1], turn = true);
+    fill_region([envelope, 0, 0], l_regions[1], region_trays[1], turn = true, part_color = "SteelBlue");
 } else {
-    color("Coral")
-        fill_region([envelope, 0, 0], corner_regions[0], region_trays[0], turn = true);
+    fill_region([envelope, 0, 0], corner_regions[0], region_trays[0], turn = true);
 
-    color("SteelBlue")
-        fill_region([0, cards_width, 0], corner_regions[1], region_trays[1]);
+    fill_region([0, cards_width, 0], corner_regions[1], region_trays[1], part_color = "SteelBlue");
 }
 
 echo(str("scope                 ", scope, ", card layout ", card_layout, card_layout == "L" ? str(", arm split after ", l_arm) : ""));

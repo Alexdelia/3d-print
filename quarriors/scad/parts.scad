@@ -121,43 +121,44 @@ module outer_body(length, width, height) {
             rect([length, width], rounding = outer_rounding);
 }
 
-module dice_tray(dice_count, basis = die_basis, pocket = 0, label = "") {
+module dice_row(count, width) {
+    first = wall + skirt_clearance / 2 + row_clearance / 2;
+
+    for(i = [0:count - 1])
+        translate([first + die_measured * (i + 0.5), width / 2, skirt_height + floor_thickness])
+            die();
+}
+
+module dice_tray(dice_count, basis = die_basis, pocket = 0, label = "", filled = -1, part_color = tray_color) {
     pocket_w = pocket > 0 ? pocket : pocket_width_for(basis);
     channel = channel_length(dice_count, basis);
     length = tray_length(dice_count, basis);
     width = tray_width_of(pocket_w);
     floor_top = skirt_height + floor_thickness;
+    shown = filled >= 0 ? filled : (show_dice ? dice_count : 0);
 
     translate([length / 2, width / 2, 0])
-        difference() {
-            outer_body(length, width, tray_height);
+        color(part_color)
+            difference() {
+                outer_body(length, width, tray_height);
 
-            skirt_void(length - 2 * wall, width - 2 * wall);
+                skirt_void(length - 2 * wall, width - 2 * wall);
 
-            up(floor_top)
-                slot_void(channel, pocket_w, tray_wall_height, pocket_rounding, pocket_floor_chamfer, pocket_lead_in);
+                up(floor_top)
+                    slot_void(channel, pocket_w, tray_wall_height, pocket_rounding, pocket_floor_chamfer, pocket_lead_in);
 
-            if (label != "")
-                engrave_front(label, label_size, 0, floor_top + tray_wall_height / 2, -width / 2);
-        }
-}
+                if (label != "")
+                    engrave_front(label, label_size, 0, floor_top + tray_wall_height / 2, -width / 2);
+            }
 
-module tray_with_dice(dice_count, filled, tray_color, basis = die_basis) {
-    width = tray_width_for(basis);
-    first = wall + skirt_clearance / 2 + row_clearance / 2;
-
-    color(tray_color)
-        dice_tray(dice_count, basis);
-
-    for(i = [0:filled - 1])
-        translate([first + die_measured * (i + 0.5), width / 2, skirt_height + floor_thickness])
-            die();
+    if (shown > 0)
+        dice_row(shown, width);
 }
 
 function card_slot_depths(stacks) =
     [
         for (s = stacks)
-            s + card_slot_clearance
+            stack_depth(s) + card_slot_clearance
     ];
 
 function card_slot_offset(depths, index) =
@@ -174,6 +175,64 @@ function card_block_width() =
 function card_block_height() =
     floor_thickness + card_block_wall_height;
 
+module quiddity_logo(size) {
+    difference() {
+        circle(d = size, $fn = 96);
+        circle(d = size * 0.5, $fn = 96);
+    }
+
+    hull() {
+        translate([0, -size * 0.1])
+            square([size * 0.16, 0.01], center = true);
+
+        translate([0, -size * 0.62])
+            square([size * 0.42, 0.01], center = true);
+    }
+}
+
+module card_back(kind, relief) {
+    style = card_style(kind);
+    band = card_height * card_band_ratio;
+
+    color(style[1])
+        linear_extrude(relief)
+            translate([0, band / 2])
+                square([card_width, band], center = true);
+
+    color(style[2])
+        linear_extrude(2 * relief)
+            translate([0, band / 2])
+                text(kind, size = band * card_label_ratio, font = card_label_font, halign = "center", valign = "center");
+
+    color(card_logo_color)
+        linear_extrude(relief)
+            translate([0, band + (card_height - band) / 2])
+                quiddity_logo(card_width * card_logo_ratio);
+}
+
+module card_deck(deck) {
+    color(card_style(deck_kind(deck))[0])
+        cuboid([deck_depth(deck), card_width, card_height], rounding = card_corner_radius, edges = "X", anchor = BOTTOM);
+}
+
+module card_pack(stack) {
+    depth = stack_depth(stack);
+    outermost = [
+        [1, deck_kind(stack[len(stack) - 1])],
+        [-1, deck_kind(stack[0])],
+    ];
+
+    for(i = [0:len(stack) - 1])
+        translate([deck_offset(stack, i) + deck_depth(stack[i]) / 2 - depth / 2, 0, 0])
+            card_deck(stack[i]);
+
+    for(end = outermost)
+        rotate([0, 0, end[0] > 0 ? 0 : 180])
+            translate([depth / 2, 0, 0])
+                rotate([90, 0, 90])
+                    card_back(end[1], card_art_relief);
+}
+
 module card_lift_notch(span, height) {
     r = card_notch_rounding;
     half = card_notch_width / 2 - r;
@@ -188,27 +247,34 @@ module card_lift_notch(span, height) {
         cuboid([span, card_notch_width, card_notch_depth - r + 1], anchor = BOTTOM);
 }
 
-module card_block(stacks, label = "", notch = true) {
+module card_block(stacks, label = "", notch = true, part_color = block_color, loaded = show_cards) {
     depths = card_slot_depths(stacks);
     length = card_block_depth(stacks);
     width = card_block_width();
     height = card_block_height();
     inner_width = card_width + card_face_clearance;
 
-    translate([length / 2, width / 2, 0])
-        difference() {
-            outer_body(length, width, height);
+    translate([length / 2, width / 2, 0]) {
+        color(part_color)
+            difference() {
+                outer_body(length, width, height);
 
+                for(i = [0:len(stacks) - 1])
+                    translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0, floor_thickness])
+                        slot_void(depths[i], inner_width, card_block_wall_height, min(card_slot_rounding, depths[i] / 2 - 0.01), card_floor_chamfer, card_lead_in);
+
+                if (notch)
+                    card_lift_notch(length + 2, height);
+
+                if (label != "")
+                    engrave_front(label, label_size, 0, height * 0.25, -width / 2, angle = 90);
+            }
+
+        if (loaded)
             for(i = [0:len(stacks) - 1])
                 translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0, floor_thickness])
-                    slot_void(depths[i], inner_width, card_block_wall_height, min(card_slot_rounding, depths[i] / 2 - 0.01), card_floor_chamfer, card_lead_in);
-
-            if (notch)
-                card_lift_notch(length + 2, height);
-
-            if (label != "")
-                engrave_front(label, label_size, 0, height * 0.25, -width / 2, angle = 90);
-        }
+                    card_pack(stacks[i]);
+    }
 }
 
 function card_reach() =
