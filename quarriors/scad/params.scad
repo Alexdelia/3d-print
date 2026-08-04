@@ -18,7 +18,7 @@ die_icon_text_color = "Gainsboro";
 die_basis = die_worst_case;
 row_clearance = 1.5;
 
-$fs = 0.4;
+$fs = 0.2;
 $fa = 4;
 
 nozzle = 0.4;
@@ -129,7 +129,7 @@ function card_style(kind) =
 card_wall_face = 2.0;
 card_wall_side = 2.4;
 card_divider = 1.2;
-card_slot_rounding = 3.0;
+card_slot_rounding = 1.0;
 
 base_card_stacks = [
     [
@@ -161,6 +161,7 @@ card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
 assert(card_divider >= beads(3), "card divider thinner than three beads: it would print as a gap-filled sliver");
+assert(card_slot_rounding <= card_face_clearance / 2, "card slot corner fillet reaches past the card edge, so it squeezes the outermost cards instead of filling empty corner");
 assert(card_wall_face >= beads(4), "card block face wall thinner than four beads, and it is the wall the honeycomb perforates");
 assert(card_wall_side >= card_wall_face, "card block side wall thinner than the face wall: the side wall carries the width dimension and the lift notch, the face wall only spends depth");
 assert(card_notch_apex_ratio > 0 && card_notch_apex_ratio < 1, "lift notch apex outside the wall it is cut into");
