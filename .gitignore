@@ -1,5 +1,8 @@
 # direnv
 /.direnv/
 
+# git-hooks.nix
+/.pre-commit-config.yaml
+
 # scad render
 *.png
