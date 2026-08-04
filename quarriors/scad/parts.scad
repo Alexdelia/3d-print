@@ -234,17 +234,11 @@ module card_pack(stack) {
 }
 
 module card_lift_notch(span, height) {
-    r = card_notch_rounding;
-    half = card_notch_width / 2 - r;
-    bottom = height - card_notch_depth;
+    translate([0, 0, card_notch_apex + card_notch_radius]) {
+        xcyl(r = card_notch_radius, l = span);
 
-    hull()
-        for(s = [-1, 1])
-            translate([0, s * half, bottom + r])
-                xcyl(r = r, l = span);
-
-    translate([0, 0, bottom + r])
-        cuboid([span, card_notch_width, card_notch_depth - r + 1], anchor = BOTTOM);
+        cuboid([span, card_notch_width, height - card_notch_apex - card_notch_radius + 1], anchor = BOTTOM);
+    }
 }
 
 module card_block(stacks, label = "", notch = true, part_color = block_color, loaded = show_cards) {

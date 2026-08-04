@@ -50,7 +50,7 @@ echo(str("bridge span / height  ", tray_width - 2 * wall, " / ", skirt_height));
 
 echo(str("part 0  5-die tray x", tray_copies, "  ", tray_length(5), " x ", tray_width, " x ", tray_height, "  channel ", channel_length(5), "  pocket ", pocket_width));
 echo(str("part 1  6-die tray    ", tray_length(6), " x ", tray_width, " x ", tray_height, "  channel ", channel_length(6), "  pocket ", pocket_width));
-echo(str("part 2  card block    ", card_block_depth(card_stacks), " x ", card_block_width(), " x ", card_block_height(), "  notch ", card_notch_width, " x ", card_notch_depth));
+echo(str("part 2  card block    ", card_block_depth(card_stacks), " x ", card_block_width(), " x ", card_block_height(), "  notch ", card_notch_width, " wide, apex at ", card_notch_apex, ", card exposed ", card_block_height() - card_notch_apex));
 
 for(i = [0:len(card_stacks) - 1])
     echo(str("        compartment ", i, "  ", stack_count(card_stacks[i]), " cards (", stack_summary(card_stacks[i]), "), stack ", stack_depth(card_stacks[i]), ", slot ", stack_depth(card_stacks[i]) + card_slot_clearance));

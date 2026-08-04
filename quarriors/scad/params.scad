@@ -95,7 +95,7 @@ card_thickness_worst = 0.48;
 card_basis = card_thickness_worst;
 card_slot_clearance = 1.5;
 card_face_clearance = 2.5;
-card_block_wall_height = 70.0;
+card_block_wall_height = card_height;
 
 tray_color = "Coral";
 block_color = "MediumSeaGreen";
@@ -153,14 +153,16 @@ expansion_card_stacks = [
 all_card_stacks = concat(base_card_stacks, expansion_card_stacks);
 
 card_notch_width = 36.0;
-card_notch_depth = 28.0;
-card_notch_rounding = 8.0;
+card_notch_apex_ratio = 0.5;
+card_notch_radius = card_notch_width / 2;
+card_notch_apex = floor_thickness + card_notch_apex_ratio * card_block_wall_height;
 card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
 assert(card_divider >= beads(3), "card divider thinner than three beads: it would print as a gap-filled sliver");
-assert(card_notch_depth < card_block_wall_height, "lift notch cut deeper than the wall is tall");
-assert(card_notch_rounding <= card_notch_width / 2, "lift notch rounding larger than half its width");
+assert(card_notch_apex_ratio > 0 && card_notch_apex_ratio < 1, "lift notch apex outside the wall it is cut into");
+assert(card_notch_apex + card_notch_radius <= floor_thickness + card_block_wall_height, "lift notch apex too high for its half circle to fit under the rim");
+assert(card_notch_width < card_width + card_face_clearance, "lift notch wider than the slot it opens, so it would cut the side walls");
 
 tin_inner = 125.0;
 tin_corner_radius = 7.5;
