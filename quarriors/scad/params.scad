@@ -37,6 +37,7 @@ pocket_rounding = die_corner_radius;
 pocket_floor_chamfer = 0.6;
 pocket_lead_in = 0.6;
 skirt_lead_in = 0.4;
+void_overlap = 0.01;
 
 label_size = 5.0;
 label_depth = 0.6;

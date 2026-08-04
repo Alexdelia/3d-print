@@ -85,32 +85,28 @@ module engrave_front(txt, size, x, z, y_face, angle = 0) {
 
 module slot_void(length, width, depth, rounding, floor_chamfer, lead_in) {
     straight = depth - floor_chamfer - lead_in;
+    breakout = lead_in + 1;
 
     assert(straight > 0, "slot too shallow for its floor chamfer plus lead-in");
 
     prismoid(size1 = [length + 2 * floor_chamfer, width + 2 * floor_chamfer], size2 = [length, width], h = floor_chamfer, rounding1 = rounding + floor_chamfer, rounding2 = rounding, anchor = BOTTOM);
 
-    up(floor_chamfer)
-        cuboid([length, width, straight], rounding = rounding, edges = "Z", anchor = BOTTOM);
+    up(floor_chamfer - void_overlap)
+        cuboid([length, width, straight + 2 * void_overlap], rounding = rounding, edges = "Z", anchor = BOTTOM);
 
     up(floor_chamfer + straight)
-        prismoid(size1 = [length, width], size2 = [length + 2 * lead_in, width + 2 * lead_in], h = lead_in, rounding1 = rounding, rounding2 = rounding + lead_in, anchor = BOTTOM);
-
-    up(depth)
-        cuboid([length + 2 * lead_in, width + 2 * lead_in, 1], rounding = rounding + lead_in, edges = "Z", anchor = BOTTOM);
+        prismoid(size1 = [length, width], size2 = [length + 2 * breakout, width + 2 * breakout], h = breakout, rounding1 = rounding, rounding2 = rounding + breakout, anchor = BOTTOM);
 }
 
 module skirt_void(length, width) {
     straight = skirt_height - skirt_lead_in;
-    mouth_rounding = skirt_cavity_rounding + skirt_lead_in;
+    breakout = skirt_lead_in + 1;
 
-    down(1)
-        cuboid([length + 2 * skirt_lead_in, width + 2 * skirt_lead_in, 1.001], rounding = mouth_rounding, edges = "Z", anchor = BOTTOM);
+    down(breakout - skirt_lead_in)
+        prismoid(size1 = [length + 2 * breakout, width + 2 * breakout], size2 = [length, width], h = breakout, rounding1 = skirt_cavity_rounding + breakout, rounding2 = skirt_cavity_rounding, anchor = BOTTOM);
 
-    prismoid(size1 = [length + 2 * skirt_lead_in, width + 2 * skirt_lead_in], size2 = [length, width], h = skirt_lead_in, rounding1 = mouth_rounding, rounding2 = skirt_cavity_rounding, anchor = BOTTOM);
-
-    up(skirt_lead_in)
-        cuboid([length, width, straight], rounding = skirt_cavity_rounding, edges = "Z", anchor = BOTTOM);
+    up(skirt_lead_in - void_overlap)
+        cuboid([length, width, straight + void_overlap], rounding = skirt_cavity_rounding, edges = "Z", anchor = BOTTOM);
 }
 
 module outer_body(length, width, height) {
