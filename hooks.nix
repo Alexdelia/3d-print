@@ -27,10 +27,20 @@ git-hooks.run {
       settings.format = "stderr";
     };
 
-    # ruff = {
-    #   enable = true;
-    #   stages = [ "pre-push" ];
-    # };
+    ruff = {
+      enable = true;
+      stages = [ "pre-push" ];
+    };
+
+    ty = {
+      enable = true;
+      stages = [ "pre-push" ];
+
+      name = "ty";
+      description = "type check every python file";
+      entry = "${lib.getExe pkgs.ty} check";
+      files = "\\.py$";
+    };
 
     shellcheck = {
       enable = true;

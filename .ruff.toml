@@ -1,0 +1,46 @@
+cache-dir = ".cache/ruff"
+target-version = "py313"
+
+[format]
+indent-style = "tab"
+
+docstring-code-format = true
+
+[lint]
+explicit-preview-rules = true
+select = ["ALL"]
+ignore = [
+	## format
+	"COM812", # missing-trailing-comma
+	"W191", # tab-indentation
+	"D206", # docstring-tab-indentation
+
+	## conflict
+	"D203", # incorrect-blank-line-before-class
+	"D212", # multi-line-summary-first-line
+
+	## unnecessary for small scripts
+	"T201", # print
+	"ERA001", # commented-out-code
+	"TID252", # relative-imports
+	"S101", # assert
+	"D100", # undocumented-public-module
+	"D101", # undocumented-public-class
+	"D102", # undocumented-public-method
+	"D103", # undocumented-public-function
+	"D105", # undocumented-magic-method
+	"D107", # undocumented-public-init
+	"D400", # missing-trailing-period
+	"D415", # missing-terminal-punctuation
+	"INP001", # implicit-namespace-package
+	"PLR2004", # magic-value-comparison
+	"TRY002", # raise-vanilla-class
+	"TRY003", # raise-vanilla-args
+	"EM101", # raw-string-in-exception
+	"EM102", # f-string-in-exception
+	"E402", # module-import-not-at-top-of-file
+	"FBT001", # boolean-type-hint-positional-argument
+	"FBT002", # boolean-default-value-positional-argument
+	"E741", # ambiguous-variable-name
+	"S311", # suspicious-non-cryptographic-random-usage
+]

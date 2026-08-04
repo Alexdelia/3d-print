@@ -79,6 +79,8 @@
             f3d
 
             python3
+            ruff
+            ty
 
             scadformat
             scad-check

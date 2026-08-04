@@ -5,7 +5,7 @@
   programs = {
     nixfmt.enable = true;
 
-    # ruff-format.enable = true;
+    ruff-format.enable = true;
 
     shfmt.enable = true;
   };
