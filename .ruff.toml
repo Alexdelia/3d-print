@@ -43,4 +43,5 @@ ignore = [
 	"FBT002", # boolean-default-value-positional-argument
 	"E741", # ambiguous-variable-name
 	"S311", # suspicious-non-cryptographic-random-usage
+	"CPY001", # missing-copyright-notice
 ]
