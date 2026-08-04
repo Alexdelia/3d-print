@@ -160,7 +160,28 @@ card_notch_apex = floor_thickness + card_notch_apex_ratio * card_block_wall_heig
 card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
+card_honeycomb = true;
+card_honeycomb_across_points = 8.0;
+card_honeycomb_spacing = 9.0;
+card_honeycomb_card_edge_margin = 10.0;
+card_honeycomb_band = 4.0;
+
+card_honeycomb_radius = card_honeycomb_across_points / 2;
+card_honeycomb_across_flats = card_honeycomb_across_points * cos(30);
+card_honeycomb_rib = card_honeycomb_spacing - card_honeycomb_across_flats;
+card_honeycomb_column_pitch = card_honeycomb_spacing * sin(60);
+card_honeycomb_bridge = card_honeycomb_radius;
+card_honeycomb_half_width = card_width / 2 - card_honeycomb_card_edge_margin;
+card_honeycomb_bottom = floor_thickness + card_honeycomb_band;
+card_honeycomb_top = card_notch_apex - card_honeycomb_band;
+card_honeycomb_height = card_honeycomb_top - card_honeycomb_bottom;
+
 assert(card_divider >= beads(3), "card divider thinner than three beads: it would print as a gap-filled sliver");
+assert(card_honeycomb_rib >= beads(3), "honeycomb rib thinner than three beads: the cells would print as a shredded wall");
+assert(card_honeycomb_height >= card_honeycomb_across_flats, "honeycomb window shorter than one cell: raise card_notch_apex_ratio or drop card_honeycomb_band");
+assert(2 * card_honeycomb_half_width >= card_honeycomb_across_points, "honeycomb window narrower than one cell");
+assert(card_honeycomb_bridge <= max_bridge, "honeycomb cell roof wider than PLA will bridge");
+assert(card_honeycomb_card_edge_margin > 0, "honeycomb reaching the card edge: the card corner would sweep across open cells on the way in");
 assert(card_slot_rounding <= card_face_clearance / 2, "card slot corner fillet reaches past the card edge, so it squeezes the outermost cards instead of filling empty corner");
 assert(card_wall_face >= beads(4), "card block face wall thinner than four beads, and it is the wall the honeycomb perforates");
 assert(card_wall_side >= card_wall_face, "card block side wall thinner than the face wall: the side wall carries the width dimension and the lift notch, the face wall only spends depth");

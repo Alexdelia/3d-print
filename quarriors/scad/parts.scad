@@ -243,6 +243,37 @@ module card_lift_notch(span, height) {
     }
 }
 
+function honeycomb_columns() =
+    floor((card_honeycomb_half_width - card_honeycomb_across_points / 2) / card_honeycomb_column_pitch);
+
+function honeycomb_rows() =
+    floor((card_honeycomb_height - card_honeycomb_across_flats) / card_honeycomb_spacing) + 1;
+
+function honeycomb_lowest() =
+    card_honeycomb_bottom + card_honeycomb_across_flats / 2 + (card_honeycomb_height - card_honeycomb_across_flats - (honeycomb_rows() - 1) * card_honeycomb_spacing) / 2;
+
+function honeycomb_centres() =
+    [
+        for (column = [-honeycomb_columns():honeycomb_columns()], row = [0:honeycomb_rows()])
+            let (u = column * card_honeycomb_column_pitch, v = honeycomb_lowest() + row * card_honeycomb_spacing + (column % 2 == 0 ? 0 : card_honeycomb_spacing / 2))
+                if (v - card_honeycomb_across_flats / 2 >= card_honeycomb_bottom && v + card_honeycomb_across_flats / 2 <= card_honeycomb_top)
+                    [u, v]
+    ];
+
+module honeycomb_cells() {
+    for(centre = honeycomb_centres())
+        translate(centre)
+            hexagon(r = card_honeycomb_radius);
+}
+
+module card_face_honeycomb(length) {
+    for(side = [-1, 1])
+        translate([side * (length - card_wall_face) / 2, 0, 0])
+            rotate([90, 0, 90])
+                linear_extrude(card_wall_face + 2, center = true)
+                    honeycomb_cells();
+}
+
 module card_block(stacks, label = "", notch = true, part_color = block_color, loaded = show_cards) {
     depths = card_slot_depths(stacks);
     length = card_block_depth(stacks);
@@ -261,6 +292,9 @@ module card_block(stacks, label = "", notch = true, part_color = block_color, lo
 
                 if (notch)
                     card_lift_notch(length + 2, height);
+
+                if (card_honeycomb)
+                    card_face_honeycomb(length);
 
                 if (label != "")
                     engrave_front(label, label_size, 0, height * 0.25, -width / 2, angle = 90);
