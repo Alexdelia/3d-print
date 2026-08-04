@@ -126,7 +126,8 @@ card_kind_styles = [
 function card_style(kind) =
     card_kind_styles[search([kind], card_kind_styles)[0]][1];
 
-card_wall = 2.4;
+card_wall_face = 2.0;
+card_wall_side = 2.4;
 card_divider = 1.2;
 card_slot_rounding = 3.0;
 
@@ -160,6 +161,8 @@ card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
 assert(card_divider >= beads(3), "card divider thinner than three beads: it would print as a gap-filled sliver");
+assert(card_wall_face >= beads(4), "card block face wall thinner than four beads, and it is the wall the honeycomb perforates");
+assert(card_wall_side >= card_wall_face, "card block side wall thinner than the face wall: the side wall carries the width dimension and the lift notch, the face wall only spends depth");
 assert(card_notch_apex_ratio > 0 && card_notch_apex_ratio < 1, "lift notch apex outside the wall it is cut into");
 assert(card_notch_apex + card_notch_radius <= floor_thickness + card_block_wall_height, "lift notch apex too high for its half circle to fit under the rim");
 assert(card_notch_width < card_width + card_face_clearance, "lift notch wider than the slot it opens, so it would cut the side walls");

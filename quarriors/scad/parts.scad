@@ -162,16 +162,18 @@ function card_slot_depths(stacks) =
     ];
 
 function card_slot_offset(depths, index) =
-    card_wall + (index == 0 ? 0 : sum([
+    card_wall_face + (index == 0 ? 0 : sum([
         for (j = [0:index - 1])
             depths[j] + card_divider
     ]));
 
 function card_block_depth(stacks) =
-    2 * card_wall + sum(card_slot_depths(stacks)) + (len(stacks) - 1) * card_divider;
+    2 * card_wall_face + sum(card_slot_depths(stacks)) + (len(stacks) - 1) * card_divider;
 
 function card_block_width() =
-    card_width + card_face_clearance + 2 * card_wall;
+    card_width + card_face_clearance + 2 * card_wall_side;
+
+assert(card_block_width() >= tray_length(5), "card block narrower than a 5-die tray: the strip beside it can then only take stub trays, which costs 21 of the 35 slots - see plan 12.2");
 function card_block_height() =
     floor_thickness + card_block_wall_height;
 
