@@ -78,6 +78,8 @@
             prusa-slicer
             f3d
 
+            imagemagick
+
             python3
             ruff
             ty
