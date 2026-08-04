@@ -22,7 +22,8 @@ nozzle = 0.4;
 layer_height = 0.2;
 max_bridge = 50.0;
 
-function beads(count) = count * nozzle - 1e-6;
+function beads(count) =
+    count * nozzle - 1e-6;
 
 wall = 1.6;
 floor_thickness = 1.2;
@@ -37,9 +38,12 @@ skirt_lead_in = 0.4;
 label_size = 5.0;
 label_depth = 0.6;
 
-function pocket_width_for(basis) = basis + die_fit_clearance;
-function tray_width_of(pocket) = pocket + 2 * wall + skirt_clearance;
-function tray_width_for(basis) = tray_width_of(pocket_width_for(basis));
+function pocket_width_for(basis) =
+    basis + die_fit_clearance;
+function tray_width_of(pocket) =
+    pocket + 2 * wall + skirt_clearance;
+function tray_width_for(basis) =
+    tray_width_of(pocket_width_for(basis));
 
 pocket_width = pocket_width_for(die_basis);
 
@@ -54,8 +58,7 @@ lane_gap = 0.3;
 tray_wall_height = die_worst_case * tray_wall_ratio;
 die_protrusion = die_worst_case - tray_wall_height;
 
-skirt_height = skirt_mode == "rim" ? die_protrusion + stack_clearance
-                                  : die_worst_case * skirt_ratio;
+skirt_height = skirt_mode == "rim" ? die_protrusion + stack_clearance : die_worst_case * skirt_ratio;
 tray_height = skirt_height + floor_thickness + tray_wall_height;
 tray_pitch = skirt_mode == "rim" ? tray_height : floor_thickness + die_worst_case;
 
@@ -69,24 +72,15 @@ rim_flat = wall - pocket_lead_in - outer_top_chamfer;
 pocket_floor_flat = pocket_width - 2 * pocket_floor_chamfer;
 die_contact_patch = die_measured - 2 * die_corner_radius;
 
-assert(skirt_mode != "dice" || skirt_height < die_protrusion,
-       "skirt_ratio too large for skirt_mode=dice: the skirt reaches the rim below");
-assert(skirt_mode != "dice" || skirt_flat_engagement > 0,
-       "skirt shallower than the die corner radius: it only grips the rounded corner");
-assert(tray_wall_height > die_corner_radius,
-       "tray wall shorter than the die corner radius: it only holds the rounded corner");
-assert(skirt_cavity_rounding >= 0,
-       "outer_rounding smaller than wall: the skirt corner would have no material");
-assert(rim_flat >= beads(1),
-       "pocket_lead_in + outer_top_chamfer leave less than one bead of flat rim");
-assert(first_layer_wall >= beads(2),
-       "skirt_lead_in leaves a first layer thinner than two beads");
-assert(label_depth <= wall + skirt_clearance / 2 - beads(2),
-       "label engraving leaves less than two beads of wall behind it");
-assert(pocket_floor_flat > die_contact_patch,
-       "pocket_floor_chamfer eats into the flat face the die lands on");
-assert(tray_width_for(die_basis) - 2 * wall <= max_bridge,
-       "skirt cavity is wider than PLA will bridge");
+assert(skirt_mode != "dice" || skirt_height < die_protrusion, "skirt_ratio too large for skirt_mode=dice: the skirt reaches the rim below");
+assert(skirt_mode != "dice" || skirt_flat_engagement > 0, "skirt shallower than the die corner radius: it only grips the rounded corner");
+assert(tray_wall_height > die_corner_radius, "tray wall shorter than the die corner radius: it only holds the rounded corner");
+assert(skirt_cavity_rounding >= 0, "outer_rounding smaller than wall: the skirt corner would have no material");
+assert(rim_flat >= beads(1), "pocket_lead_in + outer_top_chamfer leave less than one bead of flat rim");
+assert(first_layer_wall >= beads(2), "skirt_lead_in leaves a first layer thinner than two beads");
+assert(label_depth <= wall + skirt_clearance / 2 - beads(2), "label engraving leaves less than two beads of wall behind it");
+assert(pocket_floor_flat > die_contact_patch, "pocket_floor_chamfer eats into the flat face the die lands on");
+assert(tray_width_for(die_basis) - 2 * wall <= max_bridge, "skirt cavity is wider than PLA will bridge");
 
 tray_width = tray_width_for(die_basis);
 lane_pitch = tray_width + lane_gap;
@@ -113,25 +107,26 @@ card_notch_rounding = 8.0;
 card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
-assert(card_divider >= beads(3),
-       "card divider thinner than three beads: it would print as a gap-filled sliver");
-assert(card_notch_depth < card_block_wall_height,
-       "lift notch cut deeper than the wall is tall");
-assert(card_notch_rounding <= card_notch_width / 2,
-       "lift notch rounding larger than half its width");
+assert(card_divider >= beads(3), "card divider thinner than three beads: it would print as a gap-filled sliver");
+assert(card_notch_depth < card_block_wall_height, "lift notch cut deeper than the wall is tall");
+assert(card_notch_rounding <= card_notch_width / 2, "lift notch rounding larger than half its width");
 
 tin_inner = 125.0;
 tin_corner_radius = 7.5;
 tin_safety_margin = 5.0;
 envelope = tin_inner - tin_safety_margin;
 
-function channel_length(dice_count, basis = die_basis) = dice_count * basis + row_clearance;
+function channel_length(dice_count, basis = die_basis) =
+    dice_count * basis + row_clearance;
 function tray_length(dice_count, basis = die_basis) =
     channel_length(dice_count, basis) + 2 * wall + skirt_clearance;
 
-function lanes_in(width) = floor(width / lane_pitch);
-function levels_in(height) = floor((height - die_protrusion) / tray_pitch);
+function lanes_in(width) =
+    floor(width / lane_pitch);
+function levels_in(height) =
+    floor((height - die_protrusion) / tray_pitch);
 function slots_in(region, dice_count) =
     tray_length(dice_count) <= region[0] ? lanes_in(region[1]) * levels_in(region[2]) : 0;
 
-function stack_of(count) = count * card_basis;
+function stack_of(count) =
+    count * card_basis;

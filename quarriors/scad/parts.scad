@@ -2,26 +2,27 @@ include <BOSL2/std.scad>
 include <params.scad>
 
 module die_body() {
-    cuboid([die_measured, die_measured, die_measured],
-           rounding = die_corner_radius, $fn = die_smoothness, anchor = BOTTOM);
+    cuboid([die_measured, die_measured, die_measured], rounding = die_corner_radius, $fn = die_smoothness, anchor = BOTTOM);
 }
 
 module drop_outline(size) {
     hull() {
-        translate([0, -size * 0.17]) circle(d = size * 0.58, $fn = 64);
-        translate([0, size * 0.5]) circle(d = 0.01, $fn = 8);
+        translate([0, -size * 0.17])
+            circle(d = size * 0.58, $fn = 64);
+        translate([0, size * 0.5])
+            circle(d = 0.01, $fn = 8);
     }
 }
 
 module die_icon_face(value) {
     color(die_icon_color)
-        linear_extrude(die_icon_relief) drop_outline(die_icon_size);
+        linear_extrude(die_icon_relief)
+            drop_outline(die_icon_size);
 
     color(die_icon_text_color)
         translate([0, -die_icon_size * 0.17, die_icon_relief])
             linear_extrude(0.12)
-                text(str(value), size = die_icon_size * 0.30,
-                     halign = "center", valign = "center");
+                text(str(value), size = die_icon_size * 0.30, halign = "center", valign = "center");
 }
 
 die_face_rotations = [
@@ -36,7 +37,10 @@ die_face_rotations = [
 die_face_spins = [0, 0, 0, 180, 90, -90];
 
 function die_face_values(value) =
-    is_num(value) ? [for (i = [0 : 5]) value] : value;
+    is_num(value) ? [
+        for (i = [0:5])
+            value
+    ] : value;
 
 module on_die_face(index) {
     half = die_measured / 2;
@@ -56,16 +60,18 @@ module die(value = die_faces) {
             difference() {
                 die_body();
 
-                for (i = [0 : 5])
+                for(i = [0:5])
                     on_die_face(i)
                         linear_extrude(die_icon_relief + 0.01)
                             drop_outline(die_icon_size);
             }
 
-        for (i = [0 : 5])
-            on_die_face(i) die_icon_face(values[i]);
+        for(i = [0:5])
+            on_die_face(i)
+                die_icon_face(values[i]);
     } else {
-        color(die_color) die_body();
+        color(die_color)
+            die_body();
     }
 }
 
@@ -82,21 +88,16 @@ module slot_void(length, width, depth, rounding, floor_chamfer, lead_in) {
 
     assert(straight > 0, "slot too shallow for its floor chamfer plus lead-in");
 
-    prismoid(size1 = [length + 2 * floor_chamfer, width + 2 * floor_chamfer],
-             size2 = [length, width], h = floor_chamfer,
-             rounding1 = rounding + floor_chamfer, rounding2 = rounding, anchor = BOTTOM);
+    prismoid(size1 = [length + 2 * floor_chamfer, width + 2 * floor_chamfer], size2 = [length, width], h = floor_chamfer, rounding1 = rounding + floor_chamfer, rounding2 = rounding, anchor = BOTTOM);
 
     up(floor_chamfer)
         cuboid([length, width, straight], rounding = rounding, edges = "Z", anchor = BOTTOM);
 
     up(floor_chamfer + straight)
-        prismoid(size1 = [length, width],
-                 size2 = [length + 2 * lead_in, width + 2 * lead_in], h = lead_in,
-                 rounding1 = rounding, rounding2 = rounding + lead_in, anchor = BOTTOM);
+        prismoid(size1 = [length, width], size2 = [length + 2 * lead_in, width + 2 * lead_in], h = lead_in, rounding1 = rounding, rounding2 = rounding + lead_in, anchor = BOTTOM);
 
     up(depth)
-        cuboid([length + 2 * lead_in, width + 2 * lead_in, 1],
-               rounding = rounding + lead_in, edges = "Z", anchor = BOTTOM);
+        cuboid([length + 2 * lead_in, width + 2 * lead_in, 1], rounding = rounding + lead_in, edges = "Z", anchor = BOTTOM);
 }
 
 module skirt_void(length, width) {
@@ -104,24 +105,20 @@ module skirt_void(length, width) {
     mouth_rounding = skirt_cavity_rounding + skirt_lead_in;
 
     down(1)
-        cuboid([length + 2 * skirt_lead_in, width + 2 * skirt_lead_in, 1.001],
-               rounding = mouth_rounding, edges = "Z", anchor = BOTTOM);
+        cuboid([length + 2 * skirt_lead_in, width + 2 * skirt_lead_in, 1.001], rounding = mouth_rounding, edges = "Z", anchor = BOTTOM);
 
-    prismoid(size1 = [length + 2 * skirt_lead_in, width + 2 * skirt_lead_in],
-             size2 = [length, width], h = skirt_lead_in,
-             rounding1 = mouth_rounding, rounding2 = skirt_cavity_rounding, anchor = BOTTOM);
+    prismoid(size1 = [length + 2 * skirt_lead_in, width + 2 * skirt_lead_in], size2 = [length, width], h = skirt_lead_in, rounding1 = mouth_rounding, rounding2 = skirt_cavity_rounding, anchor = BOTTOM);
 
     up(skirt_lead_in)
-        cuboid([length, width, straight],
-               rounding = skirt_cavity_rounding, edges = "Z", anchor = BOTTOM);
+        cuboid([length, width, straight], rounding = skirt_cavity_rounding, edges = "Z", anchor = BOTTOM);
 }
 
 module outer_body(length, width, height) {
     if (outer_top_chamfer > 0)
-        offset_sweep(rect([length, width], rounding = outer_rounding), height = height,
-                     top = os_chamfer(width = outer_top_chamfer));
+        offset_sweep(rect([length, width], rounding = outer_rounding), height = height, top = os_chamfer(width = outer_top_chamfer));
     else
-        linear_extrude(height) rect([length, width], rounding = outer_rounding);
+        linear_extrude(height)
+            rect([length, width], rounding = outer_rounding);
 }
 
 module dice_tray(dice_count, basis = die_basis, pocket = 0, label = "") {
@@ -138,12 +135,10 @@ module dice_tray(dice_count, basis = die_basis, pocket = 0, label = "") {
             skirt_void(length - 2 * wall, width - 2 * wall);
 
             up(floor_top)
-                slot_void(channel, pocket_w, tray_wall_height, pocket_rounding,
-                          pocket_floor_chamfer, pocket_lead_in);
+                slot_void(channel, pocket_w, tray_wall_height, pocket_rounding, pocket_floor_chamfer, pocket_lead_in);
 
             if (label != "")
-                engrave_front(label, label_size, 0, floor_top + tray_wall_height / 2,
-                              -width / 2);
+                engrave_front(label, label_size, 0, floor_top + tray_wall_height / 2, -width / 2);
         }
 }
 
@@ -151,24 +146,33 @@ module tray_with_dice(dice_count, filled, tray_color, basis = die_basis) {
     width = tray_width_for(basis);
     first = wall + skirt_clearance / 2 + row_clearance / 2;
 
-    color(tray_color) dice_tray(dice_count, basis);
+    color(tray_color)
+        dice_tray(dice_count, basis);
 
-    for (i = [0 : filled - 1])
-        translate([first + die_measured * (i + 0.5), width / 2,
-                   skirt_height + floor_thickness])
+    for(i = [0:filled - 1])
+        translate([first + die_measured * (i + 0.5), width / 2, skirt_height + floor_thickness])
             die();
 }
 
-function card_slot_depths(stacks) = [for (s = stacks) s + card_slot_clearance];
+function card_slot_depths(stacks) =
+    [
+        for (s = stacks)
+            s + card_slot_clearance
+    ];
 
 function card_slot_offset(depths, index) =
-    card_wall + (index == 0 ? 0 : sum([for (j = [0 : index - 1]) depths[j] + card_divider]));
+    card_wall + (index == 0 ? 0 : sum([
+        for (j = [0:index - 1])
+            depths[j] + card_divider
+    ]));
 
 function card_block_depth(stacks) =
     2 * card_wall + sum(card_slot_depths(stacks)) + (len(stacks) - 1) * card_divider;
 
-function card_block_width() = card_width + card_face_clearance + 2 * card_wall;
-function card_block_height() = floor_thickness + card_block_wall_height;
+function card_block_width() =
+    card_width + card_face_clearance + 2 * card_wall;
+function card_block_height() =
+    floor_thickness + card_block_wall_height;
 
 module card_lift_notch(span, height) {
     r = card_notch_rounding;
@@ -176,8 +180,9 @@ module card_lift_notch(span, height) {
     bottom = height - card_notch_depth;
 
     hull()
-        for (s = [-1, 1])
-            translate([0, s * half, bottom + r]) xcyl(r = r, l = span);
+        for(s = [-1, 1])
+            translate([0, s * half, bottom + r])
+                xcyl(r = r, l = span);
 
     translate([0, 0, bottom + r])
         cuboid([span, card_notch_width, card_notch_depth - r + 1], anchor = BOTTOM);
@@ -194,18 +199,17 @@ module card_block(stacks, label = "", notch = true) {
         difference() {
             outer_body(length, width, height);
 
-            for (i = [0 : len(stacks) - 1])
-                translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0,
-                           floor_thickness])
-                    slot_void(depths[i], inner_width, card_block_wall_height,
-                              min(card_slot_rounding, depths[i] / 2 - 0.01),
-                              card_floor_chamfer, card_lead_in);
+            for(i = [0:len(stacks) - 1])
+                translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0, floor_thickness])
+                    slot_void(depths[i], inner_width, card_block_wall_height, min(card_slot_rounding, depths[i] / 2 - 0.01), card_floor_chamfer, card_lead_in);
 
-            if (notch) card_lift_notch(length + 2, height);
+            if (notch)
+                card_lift_notch(length + 2, height);
 
             if (label != "")
                 engrave_front(label, label_size, 0, height * 0.25, -width / 2, angle = 90);
         }
 }
 
-function card_reach() = floor_thickness + card_height;
+function card_reach() =
+    floor_thickness + card_height;
