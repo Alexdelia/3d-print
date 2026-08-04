@@ -55,7 +55,8 @@ echo(str("part 2  card block    ", card_block_depth(card_stacks), " x ", card_bl
 for(i = [0:len(card_stacks) - 1])
     echo(str("        compartment ", i, "  ", stack_count(card_stacks[i]), " cards (", stack_summary(card_stacks[i]), "), stack ", stack_depth(card_stacks[i]), ", slot ", stack_depth(card_stacks[i]) + card_slot_clearance));
 
-echo(str("        honeycomb     ", len(honeycomb_centres()), " cells per face, ", 2 * honeycomb_columns() + 1, " columns x ", honeycomb_rows(), " rows, window ", 2 * card_honeycomb_half_width, " x ", card_honeycomb_height, ", cell ", card_honeycomb_across_points, " x ", card_honeycomb_across_flats, ", rib ", card_honeycomb_rib, ", roof bridge ", card_honeycomb_bridge));
+echo(str("        honeycomb     ", len(honeycomb_centres()), " cells per wall, insertion ", card_insertion, ", dividers ", card_honeycomb_dividers ? "cut" : "solid", ", window ", 2 * card_honeycomb_half_width, " x ", card_honeycomb_height));
+echo(str("        cell          ", card_honeycomb_cell_width, " x ", card_honeycomb_cell_height, ", tips ", card_honeycomb_tip_angle, " deg, rib ", card_honeycomb_rib, ", bridge facing the card edge ", card_honeycomb_leading_edge_bridge));
 
 echo(str("loaded stack of ", tray_copies + 1, "     rim ", tray_copies * tray_pitch + tray_height, ", dice top ", tray_copies * tray_pitch + skirt_height + floor_thickness + die_measured));
 echo(str("plate                 ", plate_x, " x ", plate_y));

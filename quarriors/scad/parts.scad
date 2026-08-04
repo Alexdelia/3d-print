@@ -239,35 +239,60 @@ module card_lift_notch(span, height) {
     }
 }
 
+function honeycomb_tile() =
+    let (across = card_honeycomb_pitch / 2, flat = card_honeycomb_flat / 2, tip = card_honeycomb_flat / 2 + card_honeycomb_tip)
+        [
+            [across, -flat],
+            [across, flat],
+            [0, tip],
+            [-across, flat],
+            [-across, -flat],
+            [0, -tip],
+        ];
+
 function honeycomb_columns() =
-    floor((card_honeycomb_half_width - card_honeycomb_across_points / 2) / card_honeycomb_column_pitch);
+    floor((card_honeycomb_half_width - card_honeycomb_cell_width / 2) / card_honeycomb_pitch_u);
 
 function honeycomb_rows() =
-    floor((card_honeycomb_height - card_honeycomb_across_flats) / card_honeycomb_spacing) + 1;
+    floor((card_honeycomb_height - card_honeycomb_cell_height) / card_honeycomb_pitch_v) + 1;
 
 function honeycomb_lowest() =
-    card_honeycomb_bottom + card_honeycomb_across_flats / 2 + (card_honeycomb_height - card_honeycomb_across_flats - (honeycomb_rows() - 1) * card_honeycomb_spacing) / 2;
+    card_honeycomb_bottom + card_honeycomb_cell_height / 2 + (card_honeycomb_height - card_honeycomb_cell_height - (honeycomb_rows() - 1) * card_honeycomb_pitch_v) / 2;
+
+function honeycomb_holds(u, v) =
+    abs(u) + card_honeycomb_cell_width / 2 <= card_honeycomb_half_width && v - card_honeycomb_cell_height / 2 >= card_honeycomb_bottom && v + card_honeycomb_cell_height / 2 <= card_honeycomb_top;
 
 function honeycomb_centres() =
     [
         for (column = [-honeycomb_columns():honeycomb_columns()], row = [0:honeycomb_rows()])
-            let (u = column * card_honeycomb_column_pitch, v = honeycomb_lowest() + row * card_honeycomb_spacing + (column % 2 == 0 ? 0 : card_honeycomb_spacing / 2))
-                if (v - card_honeycomb_across_flats / 2 >= card_honeycomb_bottom && v + card_honeycomb_across_flats / 2 <= card_honeycomb_top)
+            let (u = column * card_honeycomb_pitch_u + (row % 2 == 0 ? 0 : card_honeycomb_stagger_u), v = honeycomb_lowest() + row * card_honeycomb_pitch_v + (column % 2 == 0 ? 0 : card_honeycomb_stagger_v))
+                if (honeycomb_holds(u, v))
                     [u, v]
     ];
+
+module honeycomb_cell() {
+    rotate(card_honeycomb_slides_down ? 0 : 90)
+        offset(delta = -card_honeycomb_inset)
+            polygon(honeycomb_tile());
+}
 
 module honeycomb_cells() {
     for(centre = honeycomb_centres())
         translate(centre)
-            hexagon(r = card_honeycomb_radius);
+            honeycomb_cell();
 }
 
-module card_face_honeycomb(length) {
-    for(side = [-1, 1])
-        translate([side * (length - card_wall_face) / 2, 0, 0])
-            rotate([90, 0, 90])
-                linear_extrude(card_wall_face + 2, center = true)
-                    honeycomb_cells();
+module card_honeycomb_void(length) {
+    if (card_honeycomb_dividers)
+        rotate([90, 0, 90])
+            linear_extrude(length + 2, center = true)
+                honeycomb_cells();
+    else
+        for(side = [-1, 1])
+            translate([side * (length - card_wall_face) / 2, 0, 0])
+                rotate([90, 0, 90])
+                    linear_extrude(card_wall_face + 2, center = true)
+                        honeycomb_cells();
 }
 
 module card_block(stacks, label = "", notch = true, part_color = block_color, loaded = show_cards) {
@@ -290,7 +315,7 @@ module card_block(stacks, label = "", notch = true, part_color = block_color, lo
                     card_lift_notch(length + 2, height);
 
                 if (card_honeycomb)
-                    card_face_honeycomb(length);
+                    card_honeycomb_void(length);
 
                 if (label != "")
                     engrave_front(label, label_size, 0, height * 0.25, -width / 2, angle = 90);

@@ -161,27 +161,46 @@ card_notch_apex = floor_thickness + card_notch_apex_ratio * card_block_wall_heig
 card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
+card_insertion = "top";
+
 card_honeycomb = true;
-card_honeycomb_across_points = 8.0;
-card_honeycomb_spacing = 9.0;
+card_honeycomb_dividers = true;
+card_honeycomb_pitch = 9.0;
+card_honeycomb_flat = 4.0;
+card_honeycomb_rib = 2.07;
+card_honeycomb_tip_angle = 45;
 card_honeycomb_card_edge_margin = 10.0;
 card_honeycomb_band = 4.0;
 
-card_honeycomb_radius = card_honeycomb_across_points / 2;
-card_honeycomb_across_flats = card_honeycomb_across_points * cos(30);
-card_honeycomb_rib = card_honeycomb_spacing - card_honeycomb_across_flats;
-card_honeycomb_column_pitch = card_honeycomb_spacing * sin(60);
-card_honeycomb_bridge = card_honeycomb_radius;
+card_honeycomb_tip = card_honeycomb_pitch / 2 * tan(card_honeycomb_tip_angle);
+card_honeycomb_inset = card_honeycomb_rib / 2;
+card_honeycomb_cell_across = card_honeycomb_pitch - card_honeycomb_rib;
+card_honeycomb_cell_along = card_honeycomb_flat + 2 * card_honeycomb_tip - card_honeycomb_rib / sin(card_honeycomb_tip_angle);
+card_honeycomb_cell_flat = card_honeycomb_flat - card_honeycomb_rib * (1 - sin(card_honeycomb_tip_angle)) / cos(card_honeycomb_tip_angle);
+card_honeycomb_row_pitch = card_honeycomb_flat + card_honeycomb_tip;
+
+card_honeycomb_slides_down = card_insertion == "top";
+card_honeycomb_cell_width = card_honeycomb_slides_down ? card_honeycomb_cell_across : card_honeycomb_cell_along;
+card_honeycomb_cell_height = card_honeycomb_slides_down ? card_honeycomb_cell_along : card_honeycomb_cell_across;
+card_honeycomb_pitch_u = card_honeycomb_slides_down ? card_honeycomb_pitch : card_honeycomb_row_pitch;
+card_honeycomb_pitch_v = card_honeycomb_slides_down ? card_honeycomb_row_pitch : card_honeycomb_pitch;
+card_honeycomb_stagger_u = card_honeycomb_slides_down ? card_honeycomb_pitch / 2 : 0;
+card_honeycomb_stagger_v = card_honeycomb_slides_down ? 0 : card_honeycomb_pitch / 2;
+card_honeycomb_leading_edge_bridge = card_honeycomb_slides_down ? 0 : card_honeycomb_cell_flat;
+
 card_honeycomb_half_width = card_width / 2 - card_honeycomb_card_edge_margin;
 card_honeycomb_bottom = floor_thickness + card_honeycomb_band;
 card_honeycomb_top = card_notch_apex - card_honeycomb_band;
 card_honeycomb_height = card_honeycomb_top - card_honeycomb_bottom;
 
 assert(card_divider >= beads(3), "card divider thinner than three beads: it would print as a gap-filled sliver");
+assert(card_insertion == "top" || card_insertion == "side", "card_insertion must be top or side: it decides which way the cells are turned so no cell edge runs parallel to the card edge that slides in");
 assert(card_honeycomb_rib >= beads(3), "honeycomb rib thinner than three beads: the cells would print as a shredded wall");
-assert(card_honeycomb_height >= card_honeycomb_across_flats, "honeycomb window shorter than one cell: raise card_notch_apex_ratio or drop card_honeycomb_band");
-assert(2 * card_honeycomb_half_width >= card_honeycomb_across_points, "honeycomb window narrower than one cell");
-assert(card_honeycomb_bridge <= max_bridge, "honeycomb cell roof wider than PLA will bridge");
+assert(card_honeycomb_tip_angle >= 45, "honeycomb tip shallower than 45 degrees: the cell roof would need support");
+assert(card_honeycomb_cell_flat > 0, "honeycomb rib eats the whole cell flat: raise card_honeycomb_flat or drop the rib");
+assert(card_honeycomb_height >= card_honeycomb_cell_height, "honeycomb window shorter than one cell: raise card_notch_apex_ratio or drop card_honeycomb_band");
+assert(2 * card_honeycomb_half_width >= card_honeycomb_cell_width, "honeycomb window narrower than one cell");
+assert(card_honeycomb_leading_edge_bridge <= max_bridge, "honeycomb cell edge facing the card's leading edge is wider than PLA will bridge");
 assert(card_honeycomb_card_edge_margin > 0, "honeycomb reaching the card edge: the card corner would sweep across open cells on the way in");
 assert(card_slot_rounding <= card_face_clearance / 2, "card slot corner fillet reaches past the card edge, so it squeezes the outermost cards instead of filling empty corner");
 assert(card_wall_face >= beads(4), "card block face wall thinner than four beads, and it is the wall the honeycomb perforates");
