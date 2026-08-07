@@ -179,13 +179,14 @@ card_insertion = "top";
 
 card_honeycomb = true;
 card_honeycomb_dividers = true;
-card_honeycomb_pitch = 9.0;
+card_honeycomb_pitch = 7.0;
 card_honeycomb_flat = 0.0;
 card_honeycomb_rib = 2.07;
 card_honeycomb_tip_angle = 60;
 card_honeycomb_card_edge_margin = 10.0;
 card_honeycomb_band = 4.0;
 card_honeycomb_notch_gap = card_honeycomb_rib;
+card_honeycomb_phase_steps = 12;
 
 card_honeycomb_rhombus = card_honeycomb_flat == 0;
 card_honeycomb_tip = card_honeycomb_pitch / 2 * tan(card_honeycomb_tip_angle);

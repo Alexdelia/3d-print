@@ -315,8 +315,8 @@ function honeycomb_columns() =
 function honeycomb_rows() =
     floor((card_honeycomb_height - card_honeycomb_cell_height) / card_honeycomb_pitch_v) + 1;
 
-function honeycomb_lowest() =
-    card_honeycomb_bottom + card_honeycomb_cell_height / 2 + (card_honeycomb_height - card_honeycomb_cell_height - (honeycomb_rows() - 1) * card_honeycomb_pitch_v) / 2;
+function honeycomb_lowest(shift) =
+    card_honeycomb_bottom + card_honeycomb_cell_height / 2 + shift;
 
 function honeycomb_in_window(outline) =
     count_where([
@@ -340,13 +340,30 @@ function honeycomb_holds(u, v) =
     let (outline = honeycomb_cell_points(u, v))
         honeycomb_in_window(outline) && honeycomb_clears_push(outline) && honeycomb_clears_lift(outline);
 
-function honeycomb_centres() =
+function honeycomb_grid(shift_u, shift_v) =
     [
         for (column = [-honeycomb_columns():honeycomb_columns()], row = [0:honeycomb_rows()])
-            let (u = column * card_honeycomb_pitch_u + (row % 2 == 0 ? 0 : card_honeycomb_stagger_u), v = honeycomb_lowest() + row * card_honeycomb_pitch_v + (column % 2 == 0 ? 0 : card_honeycomb_stagger_v))
+            let (u = column * card_honeycomb_pitch_u + shift_u + (row % 2 == 0 ? 0 : card_honeycomb_stagger_u), v = honeycomb_lowest(shift_v) + row * card_honeycomb_pitch_v + (column % 2 == 0 ? 0 : card_honeycomb_stagger_v))
                 if (honeycomb_holds(u, v))
                     [u, v]
     ];
+
+function honeycomb_phases() =
+    [
+        for (shift_u = [0, card_honeycomb_pitch_u / 2], step = [0:card_honeycomb_phase_steps - 1])
+            [shift_u, step * card_honeycomb_pitch_v / card_honeycomb_phase_steps]
+    ];
+
+function honeycomb_phase() =
+    let (phases = honeycomb_phases(), counts = [
+        for (phase = phases)
+            len(honeycomb_grid(phase[0], phase[1]))
+    ])
+        phases[search(max(counts), counts)[0]];
+
+function honeycomb_centres() =
+    let (phase = honeycomb_phase())
+        honeycomb_grid(phase[0], phase[1]);
 
 module honeycomb_cell() {
     rotate(card_honeycomb_slides_down ? 0 : 90)
