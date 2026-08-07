@@ -255,7 +255,12 @@ module card_push_void(span) {
 
 function honeycomb_tile() =
     let (across = card_honeycomb_pitch / 2, flat = card_honeycomb_flat / 2, tip = card_honeycomb_flat / 2 + card_honeycomb_tip)
-        [
+        card_honeycomb_rhombus ? [
+            [across, 0],
+            [0, tip],
+            [-across, 0],
+            [0, -tip],
+        ] : [
             [across, -flat],
             [across, flat],
             [0, tip],
@@ -264,8 +269,48 @@ function honeycomb_tile() =
             [0, -tip],
         ];
 
+function honeycomb_cell_points(u, v) =
+    let (half_width = card_honeycomb_cell_width / 2, half_height = card_honeycomb_cell_height / 2, half_flat = card_honeycomb_cell_flat / 2)
+        card_honeycomb_rhombus ? [
+            [u + half_width, v],
+            [u, v + half_height],
+            [u - half_width, v],
+            [u, v - half_height],
+        ] : card_honeycomb_turns ? [
+            [u - half_flat, v + half_height],
+            [u + half_flat, v + half_height],
+            [u + half_width, v],
+            [u + half_flat, v - half_height],
+            [u - half_flat, v - half_height],
+            [u - half_width, v],
+        ] : [
+            [u + half_width, v - half_flat],
+            [u + half_width, v + half_flat],
+            [u, v + half_height],
+            [u - half_width, v + half_flat],
+            [u - half_width, v - half_flat],
+            [u, v - half_height],
+        ];
+
+function segment_distance(p, a, b) =
+    let (edge = b - a, span = edge * edge, t = span == 0 ? 0 : max(0, min(1, ((p - a) * edge) / span)))
+        norm(p - (a + t * edge));
+
+function outline_distance(p, outline) =
+    min([
+        for (i = [0:len(outline) - 1])
+            segment_distance(p, outline[i], outline[(i + 1) % len(outline)])
+    ]);
+
+function count_where(list) =
+    len([
+        for (flagged = list)
+            if (flagged)
+                1
+    ]);
+
 function honeycomb_columns() =
-    floor((card_honeycomb_half_width - card_honeycomb_cell_width / 2) / card_honeycomb_pitch_u);
+    floor((card_honeycomb_half_width - card_honeycomb_cell_width / 2) / card_honeycomb_pitch_u) + 1;
 
 function honeycomb_rows() =
     floor((card_honeycomb_height - card_honeycomb_cell_height) / card_honeycomb_pitch_v) + 1;
@@ -273,11 +318,27 @@ function honeycomb_rows() =
 function honeycomb_lowest() =
     card_honeycomb_bottom + card_honeycomb_cell_height / 2 + (card_honeycomb_height - card_honeycomb_cell_height - (honeycomb_rows() - 1) * card_honeycomb_pitch_v) / 2;
 
-function honeycomb_clears_push(u, v) =
-    !card_push_notch || abs(u) - card_honeycomb_cell_width / 2 >= card_push_keepout_half || v - card_honeycomb_cell_height / 2 >= card_push_keepout_top;
+function honeycomb_in_window(outline) =
+    count_where([
+        for (p = outline)
+            abs(p[0]) > card_honeycomb_half_width || p[1] < card_honeycomb_bottom || p[1] > card_honeycomb_top
+    ]) == 0;
+
+function honeycomb_clears_push(outline) =
+    !card_push_notch || count_where([
+        for (p = outline)
+            abs(p[0]) + p[1] < card_push_apex + card_honeycomb_notch_gap * sqrt(2)
+    ]) == 0;
+
+function honeycomb_clears_lift(outline) =
+    outline_distance([0, card_notch_centre], outline) >= card_notch_radius + card_honeycomb_notch_gap && count_where([
+        for (p = outline)
+            abs(p[0]) < card_notch_radius + card_honeycomb_notch_gap && p[1] > card_notch_centre
+    ]) == 0;
 
 function honeycomb_holds(u, v) =
-    abs(u) + card_honeycomb_cell_width / 2 <= card_honeycomb_half_width && v - card_honeycomb_cell_height / 2 >= card_honeycomb_bottom && v + card_honeycomb_cell_height / 2 <= card_honeycomb_top && honeycomb_clears_push(u, v);
+    let (outline = honeycomb_cell_points(u, v))
+        honeycomb_in_window(outline) && honeycomb_clears_push(outline) && honeycomb_clears_lift(outline);
 
 function honeycomb_centres() =
     [

@@ -171,6 +171,7 @@ card_notch_gap = 6.0;
 card_notch_apex_ratio = 0.8;
 card_notch_radius = card_notch_width / 2;
 card_notch_apex = card_push_notch ? card_push_apex + card_notch_gap : card_wall_far + card_notch_apex_ratio * card_slot_depth;
+card_notch_centre = card_notch_apex + card_notch_radius;
 card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
@@ -179,41 +180,43 @@ card_insertion = "top";
 card_honeycomb = true;
 card_honeycomb_dividers = true;
 card_honeycomb_pitch = 9.0;
-card_honeycomb_flat = 4.0;
+card_honeycomb_flat = 0.0;
 card_honeycomb_rib = 2.07;
-card_honeycomb_tip_angle = 45;
+card_honeycomb_tip_angle = 60;
 card_honeycomb_card_edge_margin = 10.0;
 card_honeycomb_band = 4.0;
+card_honeycomb_notch_gap = card_honeycomb_rib;
 
+card_honeycomb_rhombus = card_honeycomb_flat == 0;
 card_honeycomb_tip = card_honeycomb_pitch / 2 * tan(card_honeycomb_tip_angle);
 card_honeycomb_inset = card_honeycomb_rib / 2;
-card_honeycomb_cell_across = card_honeycomb_pitch - card_honeycomb_rib;
-card_honeycomb_cell_along = card_honeycomb_flat + 2 * card_honeycomb_tip - card_honeycomb_rib / sin(card_honeycomb_tip_angle);
-card_honeycomb_cell_flat = card_honeycomb_flat - card_honeycomb_rib * (1 - sin(card_honeycomb_tip_angle)) / cos(card_honeycomb_tip_angle);
+card_honeycomb_cell_across = card_honeycomb_pitch - card_honeycomb_rib / (card_honeycomb_rhombus ? sin(card_honeycomb_tip_angle) : 1);
+card_honeycomb_cell_along = card_honeycomb_flat + 2 * card_honeycomb_tip - card_honeycomb_rib / cos(card_honeycomb_tip_angle);
+card_honeycomb_cell_flat = card_honeycomb_rhombus ? 0 : card_honeycomb_flat - card_honeycomb_rib * (1 - sin(card_honeycomb_tip_angle)) / cos(card_honeycomb_tip_angle);
 card_honeycomb_row_pitch = card_honeycomb_flat + card_honeycomb_tip;
 
 card_honeycomb_slides_down = card_insertion == "top";
-card_honeycomb_cell_width = card_honeycomb_slides_down ? card_honeycomb_cell_across : card_honeycomb_cell_along;
-card_honeycomb_cell_height = card_honeycomb_slides_down ? card_honeycomb_cell_along : card_honeycomb_cell_across;
-card_honeycomb_pitch_u = card_honeycomb_slides_down ? card_honeycomb_pitch : card_honeycomb_row_pitch;
-card_honeycomb_pitch_v = card_honeycomb_slides_down ? card_honeycomb_row_pitch : card_honeycomb_pitch;
-card_honeycomb_stagger_u = card_honeycomb_slides_down ? card_honeycomb_pitch / 2 : 0;
-card_honeycomb_stagger_v = card_honeycomb_slides_down ? 0 : card_honeycomb_pitch / 2;
-card_honeycomb_leading_edge_bridge = card_honeycomb_slides_down ? 0 : card_honeycomb_cell_flat;
-
-card_push_keepout_half = card_push_width / 2 + card_honeycomb_band;
-card_push_keepout_top = card_push_apex + card_honeycomb_band;
+card_honeycomb_turns = !card_honeycomb_slides_down && !card_honeycomb_rhombus;
+card_honeycomb_cell_width = card_honeycomb_turns ? card_honeycomb_cell_along : card_honeycomb_cell_across;
+card_honeycomb_cell_height = card_honeycomb_turns ? card_honeycomb_cell_across : card_honeycomb_cell_along;
+card_honeycomb_pitch_u = card_honeycomb_turns ? card_honeycomb_row_pitch : card_honeycomb_pitch;
+card_honeycomb_pitch_v = card_honeycomb_turns ? card_honeycomb_pitch : card_honeycomb_row_pitch;
+card_honeycomb_stagger_u = card_honeycomb_turns ? 0 : card_honeycomb_pitch / 2;
+card_honeycomb_stagger_v = card_honeycomb_turns ? card_honeycomb_pitch / 2 : 0;
+card_honeycomb_leading_edge_bridge = card_honeycomb_turns ? card_honeycomb_cell_flat : 0;
 
 card_honeycomb_half_width = card_height / 2 - card_honeycomb_card_edge_margin;
 card_honeycomb_bottom = card_wall_far + card_honeycomb_band;
-card_honeycomb_top = card_notch_apex - card_honeycomb_band;
+card_honeycomb_top = card_wall_far + card_slot_depth - card_honeycomb_band;
 card_honeycomb_height = card_honeycomb_top - card_honeycomb_bottom;
 
 assert(card_divider >= beads(3), "card divider thinner than three beads: it would print as a gap-filled sliver");
 assert(card_insertion == "top" || card_insertion == "side", "card_insertion must be top or side: it decides which way the cells are turned so no cell edge runs parallel to the card edge that slides in");
 assert(card_honeycomb_rib >= beads(3), "honeycomb rib thinner than three beads: the cells would print as a shredded wall");
 assert(card_honeycomb_tip_angle >= 45, "honeycomb tip shallower than 45 degrees: the cell roof would need support");
-assert(card_honeycomb_cell_flat > 0, "honeycomb rib eats the whole cell flat: raise card_honeycomb_flat or drop the rib");
+assert(card_honeycomb_rhombus || card_honeycomb_cell_flat > 0, "honeycomb rib eats the whole cell flat: raise card_honeycomb_flat, drop the rib, or set the flat to 0 for a rhombus cell");
+assert(card_honeycomb_cell_across > 0 && card_honeycomb_cell_along > 0, "honeycomb rib eats the whole cell: drop the rib or raise the pitch");
+assert(!card_honeycomb_rhombus || card_honeycomb_tip_angle > 45, "a rhombus cell at exactly 45 degrees sits on the support limit on all four edges: raise card_honeycomb_tip_angle");
 assert(card_honeycomb_height >= card_honeycomb_cell_height, "honeycomb window shorter than one cell: raise card_notch_apex_ratio or drop card_honeycomb_band");
 assert(2 * card_honeycomb_half_width >= card_honeycomb_cell_width, "honeycomb window narrower than one cell");
 assert(card_honeycomb_leading_edge_bridge <= max_bridge, "honeycomb cell edge facing the card's leading edge is wider than PLA will bridge");
