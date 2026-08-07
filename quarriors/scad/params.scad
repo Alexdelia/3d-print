@@ -158,10 +158,19 @@ expansion_card_stacks = [
 ];
 all_card_stacks = concat(base_card_stacks, expansion_card_stacks);
 
-card_notch_width = 36.0;
-card_notch_apex_ratio = 0.5;
+card_push_notch = true;
+card_push_height = 20.0;
+card_push_width = 2 * card_push_height;
+card_push_roof_angle = 45;
+
+card_push_apex = card_wall_far + card_push_height;
+card_push_shoulder = card_push_apex - card_push_width / 2 * tan(card_push_roof_angle);
+
+card_notch_width = card_push_width;
+card_notch_gap = 6.0;
+card_notch_apex_ratio = 0.8;
 card_notch_radius = card_notch_width / 2;
-card_notch_apex = card_wall_far + card_notch_apex_ratio * card_slot_depth;
+card_notch_apex = card_push_notch ? card_push_apex + card_notch_gap : card_wall_far + card_notch_apex_ratio * card_slot_depth;
 card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
@@ -192,6 +201,9 @@ card_honeycomb_stagger_u = card_honeycomb_slides_down ? card_honeycomb_pitch / 2
 card_honeycomb_stagger_v = card_honeycomb_slides_down ? 0 : card_honeycomb_pitch / 2;
 card_honeycomb_leading_edge_bridge = card_honeycomb_slides_down ? 0 : card_honeycomb_cell_flat;
 
+card_push_keepout_half = card_push_width / 2 + card_honeycomb_band;
+card_push_keepout_top = card_push_apex + card_honeycomb_band;
+
 card_honeycomb_half_width = card_height / 2 - card_honeycomb_card_edge_margin;
 card_honeycomb_bottom = card_wall_far + card_honeycomb_band;
 card_honeycomb_top = card_notch_apex - card_honeycomb_band;
@@ -213,6 +225,10 @@ assert(card_notch_apex_ratio > 0 && card_notch_apex_ratio < 1, "lift notch apex 
 assert(card_notch_apex + card_notch_radius <= card_wall_far + card_slot_depth, "lift notch apex too high for its half circle to fit under the rim");
 assert(card_notch_width < card_slot_inner_width, "lift notch wider than the slot it opens, so it would cut the side walls");
 assert(card_recess > 0, "no recess: the card's trailing long edge would stand level with the mouth rim instead of below it - see plan 13.0");
+assert(card_push_roof_angle >= 45, "push notch roof shallower than 45 degrees: it would need support");
+assert(card_push_shoulder + 1e-6 >= card_wall_far, "push notch roof starts inside the wall the cards rest on: narrow it or raise card_push_height. Equality is the perfect triangle - the slope starts exactly at the surface the cards rest on");
+assert(card_push_apex < card_notch_apex, "push notch reaches the lift notch: the face wall would be cut through from the mouth to the floor, leaving no band between them");
+assert(card_push_width + 2 * card_honeycomb_card_edge_margin <= card_height, "push notch reaches within the card-edge margin of the card's short edges");
 assert(card_wall_far >= beads(3), "far wall thinner than three beads, and the card's leading long edge lands on it");
 
 tin_inner = 125.0;

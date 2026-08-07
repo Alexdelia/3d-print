@@ -239,6 +239,20 @@ module card_lift_notch(span, height) {
     }
 }
 
+module card_push_void(span) {
+    half = card_push_width / 2;
+
+    rotate([90, 0, 90])
+        linear_extrude(span, center = true)
+            polygon([
+                [-half, -1],
+                [half, -1],
+                [half, card_push_shoulder],
+                [0, card_push_apex],
+                [-half, card_push_shoulder],
+            ]);
+}
+
 function honeycomb_tile() =
     let (across = card_honeycomb_pitch / 2, flat = card_honeycomb_flat / 2, tip = card_honeycomb_flat / 2 + card_honeycomb_tip)
         [
@@ -259,8 +273,11 @@ function honeycomb_rows() =
 function honeycomb_lowest() =
     card_honeycomb_bottom + card_honeycomb_cell_height / 2 + (card_honeycomb_height - card_honeycomb_cell_height - (honeycomb_rows() - 1) * card_honeycomb_pitch_v) / 2;
 
+function honeycomb_clears_push(u, v) =
+    !card_push_notch || abs(u) - card_honeycomb_cell_width / 2 >= card_push_keepout_half || v - card_honeycomb_cell_height / 2 >= card_push_keepout_top;
+
 function honeycomb_holds(u, v) =
-    abs(u) + card_honeycomb_cell_width / 2 <= card_honeycomb_half_width && v - card_honeycomb_cell_height / 2 >= card_honeycomb_bottom && v + card_honeycomb_cell_height / 2 <= card_honeycomb_top;
+    abs(u) + card_honeycomb_cell_width / 2 <= card_honeycomb_half_width && v - card_honeycomb_cell_height / 2 >= card_honeycomb_bottom && v + card_honeycomb_cell_height / 2 <= card_honeycomb_top && honeycomb_clears_push(u, v);
 
 function honeycomb_centres() =
     [
@@ -313,6 +330,9 @@ module card_block(stacks, label = "", notch = true, part_color = block_color, lo
 
                 if (notch)
                     card_lift_notch(length + 2, height);
+
+                if (card_push_notch)
+                    card_push_void(length + 2);
 
                 if (card_honeycomb)
                     card_honeycomb_void(length);
