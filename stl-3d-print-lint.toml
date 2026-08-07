@@ -1,0 +1,7 @@
+[printer]
+nozzle = 0.4
+layer-height = 0.2
+
+[rule.overhang]
+self-supporting = 45.0
+max-bridge = 20.0

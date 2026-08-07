@@ -1,0 +1,31 @@
+[package]
+name = "stl-3d-print-lint"
+version = "0.1.0"
+edition = "2024"
+authors = ["Alexdelia"]
+description = "lint stl meshes for 3d printing readiness"
+
+[profile.dev]
+debug = 0
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[dependencies]
+hmerr = { git = "https://github.com/Alexdelia/yahmrslib.git" }
+ansi = { git = "https://github.com/Alexdelia/yahmrslib.git", features = ["gen"] }
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+toml = "1"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+suspicious = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+style = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
