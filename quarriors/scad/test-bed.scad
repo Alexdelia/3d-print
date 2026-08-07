@@ -14,7 +14,8 @@ module test_part(index) {
     else if (index == 1)
         dice_tray(6, filled = 0);
     else
-        card_block(card_stacks, loaded = false);
+        print_oriented(card_stacks)
+            card_block(card_stacks, loaded = false);
 }
 
 module plate() {

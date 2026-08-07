@@ -109,12 +109,18 @@ module skirt_void(length, width) {
         cuboid([length, width, straight + void_overlap], rounding = skirt_cavity_rounding, edges = "Z", anchor = BOTTOM);
 }
 
-module outer_body(length, width, height) {
-    if (outer_top_chamfer > 0)
-        offset_sweep(rect([length, width], rounding = outer_rounding), height = height, top = os_chamfer(width = outer_top_chamfer));
+module outer_body(length, width, height, bottom_chamfer = 0) {
+    outline = rect([length, width], rounding = outer_rounding);
+
+    if (outer_top_chamfer > 0 && bottom_chamfer > 0)
+        offset_sweep(outline, height = height, bottom = os_chamfer(width = bottom_chamfer), top = os_chamfer(width = outer_top_chamfer));
+    else if (bottom_chamfer > 0)
+        offset_sweep(outline, height = height, bottom = os_chamfer(width = bottom_chamfer));
+    else if (outer_top_chamfer > 0)
+        offset_sweep(outline, height = height, top = os_chamfer(width = outer_top_chamfer));
     else
         linear_extrude(height)
-            rect([length, width], rounding = outer_rounding);
+            polygon(outline);
 }
 
 module dice_row(count, width) {
@@ -239,18 +245,53 @@ module card_lift_notch(span, height) {
     }
 }
 
-module card_push_void(span) {
+module island_corner_relief(length) {
     half = card_push_width / 2;
+    reach = card_island_relief;
+    over = 0.01;
+
+    for(end = [-1, 1], side = [-1, 1])
+        let(face = end * length / 2, inside = [face + end * over, side * (half - over), -over])
+            hull() {
+                for(corner = [
+                    inside,
+                    [face - end * reach, side * (half - over), -over],
+                    [face + end * over, side * (half + reach), -over],
+                    [face + end * over, side * (half - over), reach],
+                ])
+                    translate(corner)
+                        cube(0.002, center = true);
+            }
+}
+
+module card_push_void(length) {
+    half = card_push_width / 2;
+    flare = card_bottom_chamfer;
+    corners = [
+        [-half, -1],
+        [half, -1],
+        [half, card_push_shoulder],
+        [0, card_push_apex],
+        [-half, card_push_shoulder],
+    ];
+
+    profile = round_corners(corners, radius = [0, 0, card_push_rounding, 0, card_push_rounding], closed = true);
+    plan = rect([length + 2, card_push_width]);
+    straight = card_push_shoulder - card_push_rounding;
 
     rotate([90, 0, 90])
-        linear_extrude(span, center = true)
-            polygon([
-                [-half, -1],
-                [half, -1],
-                [half, card_push_shoulder],
-                [0, card_push_apex],
-                [-half, card_push_shoulder],
-            ]);
+        linear_extrude(length + 2, center = true)
+            polygon(profile);
+
+    if (flare > 0) {
+        down(1)
+            linear_extrude(1)
+                polygon(offset(plan, delta = flare));
+
+        skin([offset(plan, delta = flare), plan], slices = 0, z = [0, flare]);
+    }
+
+    island_corner_relief(length);
 }
 
 function honeycomb_tile() =
@@ -400,7 +441,7 @@ module card_block(stacks, label = "", notch = true, part_color = block_color, lo
     translate([length / 2, width / 2, 0]) {
         color(part_color)
             difference() {
-                outer_body(length, width, height);
+                outer_body(length, width, height, bottom_chamfer = card_bottom_chamfer);
 
                 for(i = [0:len(stacks) - 1])
                     translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0, card_wall_far])
@@ -410,7 +451,7 @@ module card_block(stacks, label = "", notch = true, part_color = block_color, lo
                     card_lift_notch(length + 2, height);
 
                 if (card_push_notch)
-                    card_push_void(length + 2);
+                    card_push_void(length);
 
                 if (card_honeycomb)
                     card_honeycomb_void(length);
@@ -428,3 +469,18 @@ module card_block(stacks, label = "", notch = true, part_color = block_color, lo
 
 function card_reach() =
     card_block_height();
+
+module print_oriented(stacks) {
+    height = card_block_height();
+
+    if (card_print_face == "side")
+        translate([0, height, 0])
+            rotate([90, 0, 0])
+                children();
+    else if (card_print_face == "face")
+        translate([height, 0, 0])
+            rotate([0, -90, 0])
+                children();
+    else
+        children();
+}

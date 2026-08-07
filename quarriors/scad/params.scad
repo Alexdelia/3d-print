@@ -162,6 +162,9 @@ card_push_notch = true;
 card_push_height = 20.0;
 card_push_width = 2 * card_push_height;
 card_push_roof_angle = 45;
+card_push_rounding = 1.5;
+card_island_relief = outer_rounding;
+card_bottom_chamfer = 0.6;
 
 card_push_apex = card_wall_far + card_push_height;
 card_push_shoulder = card_push_apex - card_push_width / 2 * tan(card_push_roof_angle);
@@ -176,6 +179,7 @@ card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
 card_insertion = "top";
+card_print_face = "far";
 
 card_honeycomb = true;
 card_honeycomb_dividers = true;
@@ -197,7 +201,8 @@ card_honeycomb_cell_flat = card_honeycomb_rhombus ? 0 : card_honeycomb_flat - ca
 card_honeycomb_row_pitch = card_honeycomb_flat + card_honeycomb_tip;
 
 card_honeycomb_slides_down = card_insertion == "top";
-card_honeycomb_turns = !card_honeycomb_slides_down && !card_honeycomb_rhombus;
+card_honeycomb_long_axis_upright = card_print_face == "side";
+card_honeycomb_turns = card_honeycomb_rhombus ? card_honeycomb_long_axis_upright : !card_honeycomb_slides_down;
 card_honeycomb_cell_width = card_honeycomb_turns ? card_honeycomb_cell_along : card_honeycomb_cell_across;
 card_honeycomb_cell_height = card_honeycomb_turns ? card_honeycomb_cell_across : card_honeycomb_cell_along;
 card_honeycomb_pitch_u = card_honeycomb_turns ? card_honeycomb_row_pitch : card_honeycomb_pitch;
@@ -218,6 +223,8 @@ assert(card_honeycomb_tip_angle >= 45, "honeycomb tip shallower than 45 degrees:
 assert(card_honeycomb_rhombus || card_honeycomb_cell_flat > 0, "honeycomb rib eats the whole cell flat: raise card_honeycomb_flat, drop the rib, or set the flat to 0 for a rhombus cell");
 assert(card_honeycomb_cell_across > 0 && card_honeycomb_cell_along > 0, "honeycomb rib eats the whole cell: drop the rib or raise the pitch");
 assert(!card_honeycomb_rhombus || card_honeycomb_tip_angle > 45, "a rhombus cell at exactly 45 degrees sits on the support limit on all four edges: raise card_honeycomb_tip_angle");
+assert(card_print_face == "far" || card_print_face == "side" || card_print_face == "face", "card_print_face must be far, side or face: it names which wall lands on the bed");
+assert(card_honeycomb_rhombus || card_print_face == "far", "a hexagon cell is only checked against the 45 degree rule with the card's long axis flat on the bed: a rhombus cell turns to suit any print face, a hexagon does not - see plan 13.4");
 assert(card_honeycomb_height >= card_honeycomb_cell_height, "honeycomb window shorter than one cell: raise card_notch_apex_ratio or drop card_honeycomb_band");
 assert(2 * card_honeycomb_half_width >= card_honeycomb_cell_width, "honeycomb window narrower than one cell");
 assert(card_honeycomb_leading_edge_bridge <= max_bridge, "honeycomb cell edge facing the card's leading edge is wider than PLA will bridge");
