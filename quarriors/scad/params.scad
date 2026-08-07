@@ -96,7 +96,7 @@ card_thickness_worst = 0.48;
 card_basis = card_thickness_worst;
 card_slot_clearance = 1.5;
 card_face_clearance = 2.5;
-card_block_wall_height = card_height;
+card_recess = 4.0;
 
 tray_color = "Coral";
 block_color = "MediumSeaGreen";
@@ -129,8 +129,12 @@ function card_style(kind) =
 
 card_wall_face = 2.0;
 card_wall_side = 2.4;
+card_wall_far = card_wall_side;
 card_divider = 1.2;
 card_slot_rounding = 1.0;
+
+card_slot_inner_width = card_height + card_face_clearance;
+card_slot_depth = card_width + card_recess;
 
 base_card_stacks = [
     [
@@ -157,7 +161,7 @@ all_card_stacks = concat(base_card_stacks, expansion_card_stacks);
 card_notch_width = 36.0;
 card_notch_apex_ratio = 0.5;
 card_notch_radius = card_notch_width / 2;
-card_notch_apex = floor_thickness + card_notch_apex_ratio * card_block_wall_height;
+card_notch_apex = card_wall_far + card_notch_apex_ratio * card_slot_depth;
 card_floor_chamfer = 0.8;
 card_lead_in = 1.0;
 
@@ -188,8 +192,8 @@ card_honeycomb_stagger_u = card_honeycomb_slides_down ? card_honeycomb_pitch / 2
 card_honeycomb_stagger_v = card_honeycomb_slides_down ? 0 : card_honeycomb_pitch / 2;
 card_honeycomb_leading_edge_bridge = card_honeycomb_slides_down ? 0 : card_honeycomb_cell_flat;
 
-card_honeycomb_half_width = card_width / 2 - card_honeycomb_card_edge_margin;
-card_honeycomb_bottom = floor_thickness + card_honeycomb_band;
+card_honeycomb_half_width = card_height / 2 - card_honeycomb_card_edge_margin;
+card_honeycomb_bottom = card_wall_far + card_honeycomb_band;
 card_honeycomb_top = card_notch_apex - card_honeycomb_band;
 card_honeycomb_height = card_honeycomb_top - card_honeycomb_bottom;
 
@@ -206,8 +210,10 @@ assert(card_slot_rounding <= card_face_clearance / 2, "card slot corner fillet r
 assert(card_wall_face >= beads(4), "card block face wall thinner than four beads, and it is the wall the honeycomb perforates");
 assert(card_wall_side >= card_wall_face, "card block side wall thinner than the face wall: the side wall carries the width dimension and the lift notch, the face wall only spends depth");
 assert(card_notch_apex_ratio > 0 && card_notch_apex_ratio < 1, "lift notch apex outside the wall it is cut into");
-assert(card_notch_apex + card_notch_radius <= floor_thickness + card_block_wall_height, "lift notch apex too high for its half circle to fit under the rim");
-assert(card_notch_width < card_width + card_face_clearance, "lift notch wider than the slot it opens, so it would cut the side walls");
+assert(card_notch_apex + card_notch_radius <= card_wall_far + card_slot_depth, "lift notch apex too high for its half circle to fit under the rim");
+assert(card_notch_width < card_slot_inner_width, "lift notch wider than the slot it opens, so it would cut the side walls");
+assert(card_recess > 0, "no recess: the card's trailing long edge would stand level with the mouth rim instead of below it - see plan 13.0");
+assert(card_wall_far >= beads(3), "far wall thinner than three beads, and the card's leading long edge lands on it");
 
 tin_inner = 125.0;
 tin_corner_radius = 7.5;

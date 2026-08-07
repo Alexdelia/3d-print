@@ -167,11 +167,11 @@ function card_block_depth(stacks) =
     2 * card_wall_face + sum(card_slot_depths(stacks)) + (len(stacks) - 1) * card_divider;
 
 function card_block_width() =
-    card_width + card_face_clearance + 2 * card_wall_side;
+    card_slot_inner_width + 2 * card_wall_side;
 
 assert(card_block_width() >= tray_length(5), "card block narrower than a 5-die tray: the strip beside it can then only take stub trays, which costs 21 of the 35 slots - see plan 12.2");
 function card_block_height() =
-    floor_thickness + card_block_wall_height;
+    card_wall_far + card_slot_depth;
 
 module quiddity_logo(size) {
     difference() {
@@ -210,7 +210,7 @@ module card_back(kind, relief) {
 
 module card_deck(deck) {
     color(card_style(deck_kind(deck))[0])
-        cuboid([deck_depth(deck), card_width, card_height], rounding = card_corner_radius, edges = "X", anchor = BOTTOM);
+        cuboid([deck_depth(deck), card_height, card_width], rounding = card_corner_radius, edges = "X", anchor = BOTTOM);
 }
 
 module card_pack(stack) {
@@ -225,9 +225,9 @@ module card_pack(stack) {
             card_deck(stack[i]);
 
     for(end = outermost)
-        rotate([0, 0, end[0] > 0 ? 0 : 180])
-            translate([depth / 2, 0, 0])
-                rotate([90, 0, 90])
+        mirror([end[0] > 0 ? 0 : 1, 0, 0])
+            translate([depth / 2, -card_height / 2, card_width / 2])
+                rotate([0, 90, 0])
                     card_back(end[1], card_art_relief);
 }
 
@@ -300,7 +300,7 @@ module card_block(stacks, label = "", notch = true, part_color = block_color, lo
     length = card_block_depth(stacks);
     width = card_block_width();
     height = card_block_height();
-    inner_width = card_width + card_face_clearance;
+    inner_width = card_slot_inner_width;
 
     translate([length / 2, width / 2, 0]) {
         color(part_color)
@@ -308,8 +308,8 @@ module card_block(stacks, label = "", notch = true, part_color = block_color, lo
                 outer_body(length, width, height);
 
                 for(i = [0:len(stacks) - 1])
-                    translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0, floor_thickness])
-                        slot_void(depths[i], inner_width, card_block_wall_height, min(card_slot_rounding, depths[i] / 2 - 0.01), card_floor_chamfer, card_lead_in);
+                    translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0, card_wall_far])
+                        slot_void(depths[i], inner_width, card_slot_depth, min(card_slot_rounding, depths[i] / 2 - 0.01), card_floor_chamfer, card_lead_in);
 
                 if (notch)
                     card_lift_notch(length + 2, height);
@@ -323,10 +323,10 @@ module card_block(stacks, label = "", notch = true, part_color = block_color, lo
 
         if (loaded)
             for(i = [0:len(stacks) - 1])
-                translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0, floor_thickness])
+                translate([card_slot_offset(depths, i) + depths[i] / 2 - length / 2, 0, card_wall_far])
                     card_pack(stacks[i]);
     }
 }
 
 function card_reach() =
-    floor_thickness + card_height;
+    card_block_height();
