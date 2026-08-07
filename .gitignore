@@ -6,3 +6,9 @@
 
 # scad render
 *.png
+
+# rust
+target/
+
+# nix build
+/result

@@ -7,6 +7,12 @@
 
     ruff-format.enable = true;
 
+    rustfmt = {
+      enable = true;
+
+      package = pkgs.rustToolchain;
+    };
+
     shfmt = {
       enable = true;
 

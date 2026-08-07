@@ -6,6 +6,11 @@
 
     flake-utils.url = "github:numtide/flake-utils";
 
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -26,6 +31,7 @@
     {
       nixpkgs,
       flake-utils,
+      rust-overlay,
       treefmt-nix,
       git-hooks,
       bosl2,
@@ -38,6 +44,8 @@
           inherit system;
 
           overlays = [
+            (import rust-overlay)
+
             (final: _prev: {
               openscadLibraries = final.linkFarm "openscad-libraries" [
                 {
@@ -46,9 +54,19 @@
                 }
               ];
 
+              rustToolchain = final.rust-bin.stable.latest.default.override {
+                extensions = [ "rust-analyzer" ];
+              };
+
               scadformat = final.callPackage ./pkg/scadformat.nix { };
               scadfmt = final.callPackage ./pkg/scadfmt.nix { };
               scad-check = final.callPackage ./pkg/scad-check.nix { };
+              stl-3d-print-lint = final.callPackage ./pkg/stl-3d-print-lint.nix {
+                rustPlatform = final.makeRustPlatform {
+                  cargo = final.rustToolchain;
+                  rustc = final.rustToolchain;
+                };
+              };
             })
           ];
         };
@@ -67,6 +85,10 @@
 
         checks.pre-commit = preCommit;
 
+        packages = {
+          inherit (pkgs) scad-check stl-3d-print-lint;
+        };
+
         devShells.default = pkgs.mkShell {
           inherit (preCommit) shellHook;
 
@@ -84,8 +106,11 @@
             ruff
             ty
 
+            rustToolchain
+
             scadformat
             scad-check
+            stl-3d-print-lint
           ];
 
           OPENSCADPATH = "${pkgs.openscadLibraries}";
