@@ -23,6 +23,7 @@ $fa = 4;
 
 nozzle = 0.4;
 layer_height = 0.2;
+first_layer_worst_case = 0.3;
 max_bridge = 50.0;
 
 function beads(count) =
@@ -33,11 +34,30 @@ floor_thickness = 1.2;
 
 outer_rounding = 2.0;
 outer_top_chamfer = 0.0;
+tray_bottom_chamfer = 0.4;
 pocket_rounding = die_corner_radius;
 pocket_floor_chamfer = 0.6;
 pocket_lead_in = 0.6;
 skirt_lead_in = 0.4;
 void_overlap = 0.01;
+
+floor_chamfer_rise = 2;
+
+function chamfer_rise(spread) =
+    spread * floor_chamfer_rise;
+
+brim_width = 4.0;
+brim_height = 0.4;
+brim_gap = 0.8;
+brim_tab = 3.0;
+brim_tab_pitch = 12.0;
+
+assert(brim_height > first_layer_worst_case, "brim no thicker than the thickest first layer a slicer might choose: it would vanish into the part's own first layer");
+assert(brim_gap >= beads(2), "brim gap narrower than two beads: the slicer fills it and the tabs stop being the break line");
+assert(brim_tab >= beads(3), "brim tab thinner than three beads");
+assert(brim_tab < brim_tab_pitch, "brim tab wider than its own pitch");
+assert(brim_width > brim_gap, "brim narrower than the gap it stands off by");
+assert(atan(floor_chamfer_rise) > 45, "floor chamfer at or below 45 degrees: an auto-support threshold of exactly 45 puts support on every one of them");
 
 label_size = 5.0;
 label_depth = 0.6;
@@ -71,7 +91,7 @@ skirt_flat_engagement = skirt_height - die_corner_radius;
 rim_gap = die_protrusion - skirt_height;
 die_side_play = (pocket_width - die_measured) / 2;
 skirt_cavity_play = skirt_clearance / 2;
-first_layer_wall = wall - skirt_lead_in;
+first_layer_wall = wall - skirt_lead_in - tray_bottom_chamfer;
 rim_flat = wall - pocket_lead_in - outer_top_chamfer;
 pocket_floor_flat = pocket_width - 2 * pocket_floor_chamfer;
 die_contact_patch = die_measured - 2 * die_corner_radius;
@@ -81,7 +101,7 @@ assert(skirt_mode != "dice" || skirt_flat_engagement > 0, "skirt shallower than 
 assert(tray_wall_height > die_corner_radius, "tray wall shorter than the die corner radius: it only holds the rounded corner");
 assert(skirt_cavity_rounding >= 0, "outer_rounding smaller than wall: the skirt corner would have no material");
 assert(rim_flat >= beads(1), "pocket_lead_in + outer_top_chamfer leave less than one bead of flat rim");
-assert(first_layer_wall >= beads(2), "skirt_lead_in leaves a first layer thinner than two beads");
+assert(first_layer_wall >= beads(2), "skirt_lead_in plus tray_bottom_chamfer leave a first layer thinner than two beads");
 assert(label_depth <= wall + skirt_clearance / 2 - beads(2), "label engraving leaves less than two beads of wall behind it");
 assert(pocket_floor_flat > die_contact_patch, "pocket_floor_chamfer eats into the flat face the die lands on");
 assert(tray_width_for(die_basis) - 2 * wall <= max_bridge, "skirt cavity is wider than PLA will bridge");
@@ -175,7 +195,7 @@ card_notch_apex_ratio = 0.8;
 card_notch_radius = card_notch_width / 2;
 card_notch_apex = card_push_notch ? card_push_apex + card_notch_gap : card_wall_far + card_notch_apex_ratio * card_slot_depth;
 card_notch_centre = card_notch_apex + card_notch_radius;
-card_floor_chamfer = 0.8;
+card_floor_chamfer = 0.4;
 card_lead_in = 1.0;
 
 card_insertion = "top";
@@ -217,6 +237,7 @@ card_honeycomb_top = card_wall_far + card_slot_depth - card_honeycomb_band;
 card_honeycomb_height = card_honeycomb_top - card_honeycomb_bottom;
 
 assert(card_divider >= beads(3), "card divider thinner than three beads: it would print as a gap-filled sliver");
+assert(card_divider - 2 * card_floor_chamfer >= beads(1), "the floor chamfers of neighbouring slots meet inside the divider: its base prints as a knife edge instead of a wall");
 assert(card_insertion == "top" || card_insertion == "side", "card_insertion must be top or side: it decides which way the cells are turned so no cell edge runs parallel to the card edge that slides in");
 assert(card_honeycomb_rib >= beads(3), "honeycomb rib thinner than three beads: the cells would print as a shredded wall");
 assert(card_honeycomb_tip_angle >= 45, "honeycomb tip shallower than 45 degrees: the cell roof would need support");

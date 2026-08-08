@@ -84,17 +84,18 @@ module engrave_front(txt, size, x, z, y_face, angle = 0) {
 }
 
 module slot_void(length, width, depth, rounding, floor_chamfer, lead_in) {
-    straight = depth - floor_chamfer - lead_in;
+    rise = chamfer_rise(floor_chamfer);
+    straight = depth - rise - lead_in;
     breakout = lead_in + 1;
 
     assert(straight > 0, "slot too shallow for its floor chamfer plus lead-in");
 
-    prismoid(size1 = [length + 2 * floor_chamfer, width + 2 * floor_chamfer], size2 = [length, width], h = floor_chamfer, rounding1 = rounding + floor_chamfer, rounding2 = rounding, anchor = BOTTOM);
+    prismoid(size1 = [length + 2 * floor_chamfer, width + 2 * floor_chamfer], size2 = [length, width], h = rise, rounding1 = rounding + floor_chamfer, rounding2 = rounding, anchor = BOTTOM);
 
-    up(floor_chamfer - void_overlap)
+    up(rise - void_overlap)
         cuboid([length, width, straight + 2 * void_overlap], rounding = rounding, edges = "Z", anchor = BOTTOM);
 
-    up(floor_chamfer + straight)
+    up(rise + straight)
         prismoid(size1 = [length, width], size2 = [length + 2 * breakout, width + 2 * breakout], h = breakout, rounding1 = rounding, rounding2 = rounding + breakout, anchor = BOTTOM);
 }
 
@@ -142,7 +143,7 @@ module dice_tray(dice_count, basis = die_basis, pocket = 0, label = "", filled =
     translate([length / 2, width / 2, 0])
         color(part_color)
             difference() {
-                outer_body(length, width, tray_height);
+                outer_body(length, width, tray_height, bottom_chamfer = tray_bottom_chamfer);
 
                 skirt_void(length - 2 * wall, width - 2 * wall);
 
@@ -155,6 +156,50 @@ module dice_tray(dice_count, basis = die_basis, pocket = 0, label = "", filled =
 
     if (shown > 0)
         dice_row(shown, width);
+}
+
+function tab_positions(span) =
+    let (count = max(1, round(span / brim_tab_pitch)), pitch = span / count)
+        [
+            for (i = [0:count - 1])
+                pitch * (i + 0.5) - span / 2
+        ];
+
+module tray_tabs(length, width) {
+    reach = tray_bottom_chamfer + brim_gap + void_overlap;
+    stand_off = reach / 2 - tray_bottom_chamfer;
+
+    for(side = [-1, 1]) {
+        for(x = tab_positions(length - 2 * outer_rounding))
+            translate([x, side * (width / 2 + stand_off)])
+                square([brim_tab, reach], center = true);
+
+        for(y = tab_positions(width - 2 * outer_rounding))
+            translate([side * (length / 2 + stand_off), y])
+                square([reach, brim_tab], center = true);
+    }
+}
+
+module tray_outlines(trays) {
+    for(t = trays)
+        translate(t[0])
+            polygon(rect(t[1], rounding = outer_rounding));
+}
+
+module tray_card(trays) {
+    linear_extrude(brim_height) {
+        difference() {
+            offset(r = brim_gap + brim_width)
+                tray_outlines(trays);
+
+            offset(r = brim_gap)
+                tray_outlines(trays);
+        }
+
+        for(t = trays)
+            translate(t[0])
+                tray_tabs(t[1][0], t[1][1]);
+    }
 }
 
 function card_slot_depths(stacks) =
