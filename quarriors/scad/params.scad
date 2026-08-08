@@ -196,7 +196,7 @@ card_notch_radius = card_notch_width / 2;
 card_notch_apex = card_push_notch ? card_push_apex + card_notch_gap : card_wall_far + card_notch_apex_ratio * card_slot_depth;
 card_notch_centre = card_notch_apex + card_notch_radius;
 card_floor_chamfer = 0.4;
-card_lead_in = 1.0;
+card_lead_in = 0.4;
 
 card_insertion = "top";
 card_print_face = "far";
@@ -238,6 +238,7 @@ card_honeycomb_height = card_honeycomb_top - card_honeycomb_bottom;
 
 assert(card_divider >= beads(3), "card divider thinner than three beads: it would print as a gap-filled sliver");
 assert(card_divider - 2 * card_floor_chamfer >= beads(1), "the floor chamfers of neighbouring slots meet inside the divider: its base prints as a knife edge instead of a wall");
+assert(card_divider - 2 * card_lead_in >= beads(1), "the mouth lead-ins of neighbouring slots meet inside the divider: its top prints as a knife edge that ends below the rim");
 assert(card_insertion == "top" || card_insertion == "side", "card_insertion must be top or side: it decides which way the cells are turned so no cell edge runs parallel to the card edge that slides in");
 assert(card_honeycomb_rib >= beads(3), "honeycomb rib thinner than three beads: the cells would print as a shredded wall");
 assert(card_honeycomb_tip_angle >= 45, "honeycomb tip shallower than 45 degrees: the cell roof would need support");
